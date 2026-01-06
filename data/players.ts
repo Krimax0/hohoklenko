@@ -51,9 +51,15 @@ interface SpinTemplate {
 
 // Create spin from template - generates fresh items each time
 const createSpinFromTemplate = (template: SpinTemplate): ScriptedSpin => {
-  const winningPosition = 35 + Math.floor(Math.random() * 10); // Win at position 35-44
+  const isEpicRarity = template.winningItem.rarity === "legendary" || template.winningItem.rarity === "mythic";
+  // More items for legendary/mythic to allow for longer epic spin animation
+  const totalItems = isEpicRarity ? 200 : 50;
+  const winningPosition = isEpicRarity
+    ? 150 + Math.floor(Math.random() * 20) // Win at position 150-169 for epic
+    : 35 + Math.floor(Math.random() * 10); // Win at position 35-44 for normal
+
   return {
-    items: generateSpinItems(template.winningItem, winningPosition, 50),
+    items: generateSpinItems(template.winningItem, winningPosition, totalItems),
     winningIndex: winningPosition,
     duration: template.duration,
     easing: template.easing,

@@ -3,9 +3,14 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { gsap } from "gsap";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Snowfall } from "@/components/effects/Snowfall";
 import Ballpit from "@/components/Ballpit";
+
+const KrutkaIcon = ({ size = 24 }: { size?: number }) => (
+  <Image src="/krutka.png" alt="Крутка" width={size} height={size} className="inline-block" />
+);
 
 interface WelcomeScreenProps {
   playerName: string;
@@ -15,6 +20,13 @@ interface WelcomeScreenProps {
 
 export function WelcomeScreen({ playerName, spinsCount, onContinue }: WelcomeScreenProps) {
   const [phase, setPhase] = useState<"greeting" | "spins" | "question" | "ready">("greeting");
+  const [mounted, setMounted] = useState(false);
+
+  // Отложенный рендеринг тяжёлых компонентов
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     // Phase 1: Greeting
@@ -70,17 +82,19 @@ export function WelcomeScreen({ playerName, spinsCount, onContinue }: WelcomeScr
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 overflow-hidden">
-      {/* Ballpit - шарики падают на игрока */}
-      <div className="absolute inset-0 z-0">
-        <Ballpit
-          count={150}
-          colors={[0xff6b6b, 0x4ecdc4, 0xffeaa7, 0xa29bfe, 0x55efc4, 0xfd79a8]}
-          gravity={0.3}
-          minSize={0.3}
-          maxSize={0.8}
-          followCursor={true}
-        />
-      </div>
+      {/* Ballpit - шарики падают на игрока (отложенный рендеринг) */}
+      {mounted && (
+        <div className="absolute inset-0 z-0">
+          <Ballpit
+            count={150}
+            colors={[0xff6b6b, 0x4ecdc4, 0xffeaa7, 0xa29bfe, 0x55efc4, 0xfd79a8]}
+            gravity={0.3}
+            minSize={0.3}
+            maxSize={0.8}
+            followCursor={false}
+          />
+        </div>
+      )}
 
       <Snowfall intensity="heavy" />
 
@@ -170,8 +184,8 @@ export function WelcomeScreen({ playerName, spinsCount, onContinue }: WelcomeScr
                   ✨
                 </motion.span>
               </motion.div>
-              <h3 className="text-4xl md:text-6xl font-black text-white mt-4">
-                ПОДАРКОВ! 🎁
+              <h3 className="text-4xl md:text-6xl font-black text-white mt-4 flex items-center justify-center gap-4">
+                КРУТОК! <KrutkaIcon size={48} />
               </h3>
             </motion.div>
           )}
@@ -226,7 +240,7 @@ export function WelcomeScreen({ playerName, spinsCount, onContinue }: WelcomeScr
                       animate={{ scale: [1, 1.05, 1] }}
                       transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY }}
                     >
-                      🎁 ПОЕХАЛИ! 🎁
+                      <KrutkaIcon size={32} /> ПОЕХАЛИ! <KrutkaIcon size={32} />
                     </motion.span>
                   </Button>
                 </motion.div>

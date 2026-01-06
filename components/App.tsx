@@ -6,6 +6,7 @@ import { getSpinCount } from "@/data/players";
 import { LoginScreen } from "./LoginScreen";
 import { GameScreen } from "./GameScreen";
 import { WelcomeScreen } from "./WelcomeScreen";
+import { SoundButton } from "./SoundButton";
 import { motion, AnimatePresence } from "framer-motion";
 
 type AppScreen = "login" | "welcome" | "game";
@@ -67,7 +68,9 @@ export function App() {
   }
 
   return (
-    <AnimatePresence mode="wait">
+    <>
+      <SoundButton />
+      <AnimatePresence mode="wait">
       {currentScreen === "login" && (
         <motion.div
           key="login"
@@ -108,5 +111,6 @@ export function App() {
         </motion.div>
       )}
     </AnimatePresence>
+    </>
   );
 }

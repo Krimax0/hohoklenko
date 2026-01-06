@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
 import { SpinItemCard } from "./SpinItem";
 import type { SpinResult, Rarity } from "@/types/spin";
 import { RARITY_CONFIG } from "@/types/spin";
@@ -77,35 +78,37 @@ export function Inventory({ items, isOpen, onClose }: InventoryProps) {
                     ({items.length} предметов)
                   </span>
                 </h2>
-                <motion.button
-                  className="text-gray-400 hover:text-white text-2xl"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-gray-400 hover:text-white text-2xl hover:scale-110 active:scale-95 transition-all"
                   onClick={onClose}
                 >
                   ✕
-                </motion.button>
+                </Button>
               </div>
 
               {/* Rarity filters */}
               <div className="flex flex-wrap gap-2 mt-4">
-                <motion.button
-                  className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`px-4 py-2 rounded-full text-sm font-bold hover:scale-105 active:scale-95 transition-all ${
                     selectedRarity === "all"
-                      ? "bg-white text-black"
+                      ? "bg-white text-black hover:bg-white/90"
                       : "bg-white/10 text-white hover:bg-white/20"
                   }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
                   onClick={() => setSelectedRarity("all")}
                 >
                   Все ({items.length})
-                </motion.button>
+                </Button>
                 {rarityCounts.map(({ rarity, count, config }) =>
                   count > 0 ? (
-                    <motion.button
+                    <Button
                       key={rarity}
-                      className="px-4 py-2 rounded-full text-sm font-bold transition-all"
+                      variant="ghost"
+                      size="sm"
+                      className="px-4 py-2 rounded-full text-sm font-bold hover:scale-105 active:scale-95 transition-all"
                       style={{
                         background:
                           selectedRarity === rarity
@@ -118,12 +121,10 @@ export function Inventory({ items, isOpen, onClose }: InventoryProps) {
                             ? `0 0 10px ${config.glowColor}`
                             : "none",
                       }}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
                       onClick={() => setSelectedRarity(rarity)}
                     >
                       {config.name} ({count})
-                    </motion.button>
+                    </Button>
                   ) : null
                 )}
               </div>

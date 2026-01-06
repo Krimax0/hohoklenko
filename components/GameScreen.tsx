@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { gsap } from "gsap";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { SpinWheel } from "@/components/spin/SpinWheel";
 import { VictoryScreen } from "@/components/spin/VictoryScreen";
@@ -13,8 +14,14 @@ import { useGameStore } from "@/stores/gameStore";
 import { getSpinCount } from "@/data/players";
 import type { SpinResult } from "@/types/spin";
 
+const KrutkaIcon = ({ size = 24 }: { size?: number }) => (
+  <Image src="/krutka.png" alt="Крутка" width={size} height={size} className="inline-block" />
+);
+
 export function GameScreen() {
   const [showInventory, setShowInventory] = useState(false);
+  const [autoMode, setAutoMode] = useState(false);
+  const autoTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const {
     currentPlayer,
@@ -25,12 +32,16 @@ export function GameScreen() {
     startSpin,
     completeSpin,
     closeVictoryScreen,
-    hasMoreSpins,
     logout,
     resetPlayer,
   } = useGameStore();
 
-  const canSpin = hasMoreSpins() && !isSpinning && currentSpin !== null;
+  // Вычисляем локально чтобы гарантировать ре-рендер
+  const totalSpins = currentPlayer ? getSpinCount(currentPlayer.nickname) : 0;
+  const spinsRemaining = currentPlayer ? totalSpins - currentPlayer.currentSpinIndex : 0;
+  const hasSpinsLeft = spinsRemaining > 0;
+
+  const canSpin = hasSpinsLeft && !isSpinning && currentSpin !== null;
 
   useEffect(() => {
     // Entrance animations
@@ -61,10 +72,45 @@ export function GameScreen() {
     closeVictoryScreen();
   };
 
-  if (!currentPlayer) return null;
+  // Авто-крутка: автоматически закрываем VictoryScreen и начинаем следующий спин
+  useEffect(() => {
+    if (autoMode && showVictoryScreen && hasSpinsLeft) {
+      autoTimerRef.current = setTimeout(() => {
+        closeVictoryScreen();
+        // Небольшая задержка перед следующим спином
+        setTimeout(() => {
+          startSpin();
+        }, 300);
+      }, 800); // Показываем результат 0.8 секунды
+    }
 
-  const totalSpins = getSpinCount(currentPlayer.nickname);
-  const spinsRemaining = totalSpins - currentPlayer.currentSpinIndex;
+    return () => {
+      if (autoTimerRef.current) {
+        clearTimeout(autoTimerRef.current);
+      }
+    };
+  }, [autoMode, showVictoryScreen, hasSpinsLeft, closeVictoryScreen, startSpin]);
+
+  // Выключаем авто-режим когда крутки закончились
+  useEffect(() => {
+    if (autoMode && !hasSpinsLeft && !isSpinning) {
+      setAutoMode(false);
+    }
+  }, [autoMode, hasSpinsLeft, isSpinning]);
+
+  const handleStartAuto = () => {
+    setAutoMode(true);
+    startSpin();
+  };
+
+  const handleStopAuto = () => {
+    setAutoMode(false);
+    if (autoTimerRef.current) {
+      clearTimeout(autoTimerRef.current);
+    }
+  };
+
+  if (!currentPlayer) return null;
 
   return (
     <div className="relative min-h-screen flex flex-col bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 overflow-hidden">
@@ -108,18 +154,24 @@ export function GameScreen() {
           {/* Player info */}
           <div className="flex items-center gap-4">
             <motion.div
-              className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-red-500 to-green-500 flex items-center justify-center text-2xl md:text-3xl border-2 border-amber-400"
-              animate={{ rotate: [0, 5, -5, 0] }}
+              className="w-12 h-12 md:w-16 md:h-16 rounded-full overflow-hidden border-2 border-amber-400"
+              animate={{ scale: [1, 1.05, 1] }}
               transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
             >
-              {currentPlayer.nickname === "KLENKO" ? "🎅" : "🎄"}
+              <Image
+                src={currentPlayer.nickname === "KLENKO" ? "/klenko.jpg" : "/hohoyks.jpg"}
+                alt={currentPlayer.nickname}
+                width={64}
+                height={64}
+                className="w-full h-full object-cover"
+              />
             </motion.div>
             <div>
               <h2 className="text-xl md:text-2xl font-bold text-white">
                 {currentPlayer.nickname}
               </h2>
-              <p className="text-sm text-amber-200/70">
-                Подарков осталось:{" "}
+              <p className="text-sm text-amber-200/70 flex items-center gap-1">
+                <KrutkaIcon size={16} /> Круток осталось:{" "}
                 <span className="text-amber-400 font-bold">
                   {spinsRemaining}
                 </span>
@@ -129,10 +181,10 @@ export function GameScreen() {
 
           {/* Actions */}
           <div className="flex items-center gap-2 md:gap-4">
-            <motion.button
-              className="relative p-3 rounded-full bg-red-500/20 hover:bg-red-500/30 transition-colors border border-red-500/30"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative p-3 h-auto w-auto rounded-full bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 hover:scale-110 active:scale-95 transition-all"
               onClick={() => setShowInventory(true)}
             >
               <span className="text-xl md:text-2xl">🎁</span>
@@ -141,27 +193,27 @@ export function GameScreen() {
                   {currentPlayer.inventory.length}
                 </span>
               )}
-            </motion.button>
+            </Button>
 
-            <motion.button
-              className="p-3 rounded-full bg-green-500/20 hover:bg-green-500/30 transition-colors border border-green-500/30"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="p-3 h-auto w-auto rounded-full bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 hover:scale-110 active:scale-95 transition-all"
               onClick={resetPlayer}
               title="Сбросить прогресс"
             >
               <span className="text-xl md:text-2xl">🔄</span>
-            </motion.button>
+            </Button>
 
-            <motion.button
-              className="p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="p-3 h-auto w-auto rounded-full bg-white/10 hover:bg-white/20 hover:scale-110 active:scale-95 transition-all"
               onClick={logout}
               title="Выйти"
             >
               <span className="text-xl md:text-2xl">🚪</span>
-            </motion.button>
+            </Button>
           </div>
         </div>
       </header>
@@ -180,7 +232,7 @@ export function GameScreen() {
           }}
           style={{ backgroundSize: "200% 200%" }}
         >
-          🎄 ПОДАРОК #{currentPlayer.currentSpinIndex + 1} 🎁
+          🎄 КРУТКА #{currentPlayer.currentSpinIndex + 1} 🎄
         </motion.h1>
 
         {/* Spin wheel */}
@@ -190,6 +242,7 @@ export function GameScreen() {
               spin={currentSpin}
               isSpinning={isSpinning}
               onSpinComplete={handleSpinComplete}
+              fastMode={autoMode}
             />
           ) : (
             <div className="text-center py-20">
@@ -207,7 +260,7 @@ export function GameScreen() {
                 С Новым Годом!
               </h2>
               <p className="text-amber-200/70 text-lg">
-                Вы получили {currentPlayer.inventory.length} подарков!
+                Вы сделали {currentPlayer.inventory.length} круток!
               </p>
               <motion.div
                 className="mt-4 text-4xl"
@@ -222,38 +275,62 @@ export function GameScreen() {
 
         {/* Controls */}
         <div className="game-controls mt-8 flex flex-col items-center gap-4">
-          {canSpin && (
-            <Button
-              size="xl"
-              onClick={startSpin}
-              disabled={isSpinning}
-              className="text-xl md:text-2xl px-12 py-6 bg-gradient-to-r from-red-600 via-red-500 to-green-600 hover:from-red-500 hover:via-amber-500 hover:to-green-500 text-white font-bold shadow-lg shadow-red-500/30 hover:shadow-red-500/50 hover:scale-105 active:scale-100 transition-all duration-300 animate-pulse"
-            >
-              <motion.span
-                className="flex items-center gap-3"
-                animate={{ scale: isSpinning ? [1, 1.1, 1] : 1 }}
-                transition={{
-                  duration: 0.5,
-                  repeat: isSpinning ? Number.POSITIVE_INFINITY : 0,
-                }}
+          {canSpin && !autoMode && (
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              <Button
+                size="xl"
+                onClick={startSpin}
+                className="text-xl md:text-2xl px-12 py-6 bg-gradient-to-r from-red-600 via-red-500 to-green-600 hover:from-red-500 hover:via-amber-500 hover:to-green-500 text-white font-bold shadow-lg shadow-red-500/30 hover:shadow-red-500/50 hover:scale-105 active:scale-100 transition-all duration-300 animate-pulse"
               >
-                {isSpinning ? (
-                  <>❄️ ОТКРЫВАЕТСЯ... ❄️</>
-                ) : (
-                  <>🎁 ОТКРЫТЬ ПОДАРОК 🎁</>
-                )}
-              </motion.span>
-            </Button>
+                <span className="flex items-center gap-3">
+                  <KrutkaIcon size={28} /> КРУТИТЬ <KrutkaIcon size={28} />
+                </span>
+              </Button>
+
+              {spinsRemaining > 1 && !isSpinning && (
+                <Button
+                  size="lg"
+                  onClick={handleStartAuto}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold shadow-lg"
+                >
+                  <span className="flex items-center gap-2">
+                    ⚡ АВТО ({spinsRemaining})
+                  </span>
+                </Button>
+              )}
+            </div>
           )}
 
-          {!hasMoreSpins() && (
+          {/* Авто-режим активен */}
+          {autoMode && (
+            <div className="flex flex-col items-center gap-3">
+              <motion.div
+                className="text-amber-400 font-bold text-lg flex items-center gap-2"
+                animate={{ opacity: [1, 0.5, 1] }}
+                transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY }}
+              >
+                ⚡ АВТО-КРУТКА ⚡
+                <span className="text-white">({spinsRemaining} осталось)</span>
+              </motion.div>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={handleStopAuto}
+                className="border-red-500/50 text-red-400 hover:bg-red-500/20"
+              >
+                ⏹️ Остановить
+              </Button>
+            </div>
+          )}
+
+          {!hasSpinsLeft && !showVictoryScreen && !autoMode && (
             <div className="flex gap-4">
               <Button
                 size="lg"
                 onClick={() => setShowInventory(true)}
-                className="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400"
+                className="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 flex items-center gap-2"
               >
-                🎁 Посмотреть подарки
+                <KrutkaIcon size={20} /> Посмотреть крутки
               </Button>
               <Button variant="outline" size="lg" onClick={resetPlayer} className="border-white/30 text-white hover:bg-white/10">
                 🔄 Получить снова
@@ -265,7 +342,7 @@ export function GameScreen() {
         {/* Progress indicator */}
         <div className="mt-8 w-full max-w-md">
           <div className="flex justify-between text-sm text-amber-200/70 mb-2">
-            <span>Открыто подарков</span>
+            <span>Сделано круток</span>
             <span>
               {currentPlayer.currentSpinIndex}/{totalSpins}
             </span>
@@ -306,7 +383,7 @@ export function GameScreen() {
           result={lastResult}
           isVisible={showVictoryScreen}
           onClose={handleVictoryClose}
-          hasMoreSpins={hasMoreSpins()}
+          hasMoreSpins={hasSpinsLeft}
         />
       )}
 

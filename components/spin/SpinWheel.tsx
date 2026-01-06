@@ -1,26 +1,63 @@
 "use client";
 
 import { useRef, useEffect, useState, useCallback } from "react";
-import { motion, useAnimation, useMotionValue } from "framer-motion";
+import { motion } from "framer-motion";
 import { gsap } from "gsap";
 import { SpinItemCard } from "./SpinItem";
-import type { ScriptedSpin, SpinItem, SpinResult } from "@/types/spin";
+import { Button } from "@/components/ui/button";
+import { useTickSound } from "@/hooks/useTickSound";
+import type { ScriptedSpin, SpinResult } from "@/types/spin";
 import { RARITY_CONFIG } from "@/types/spin";
 
 interface SpinWheelProps {
   spin: ScriptedSpin;
   isSpinning: boolean;
   onSpinComplete: (result: SpinResult) => void;
+  fastMode?: boolean; // Ускоренный режим для авто-крутки
 }
 
 const ITEM_WIDTH = 124; // Width of each item (112px w-28) + gap (12px gap-3)
 const VISIBLE_ITEMS = 7; // Number of visible items
 
-export function SpinWheel({ spin, isSpinning, onSpinComplete }: SpinWheelProps) {
+export function SpinWheel({ spin, isSpinning, onSpinComplete, fastMode = false }: SpinWheelProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const stripRef = useRef<HTMLDivElement>(null);
+  const timelineRef = useRef<gsap.core.Timeline | null>(null);
+  const tickIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastTickPositionRef = useRef(0);
   const [hasSpun, setHasSpun] = useState(false);
   const [winnerRevealed, setWinnerRevealed] = useState(false);
+  const { playTick } = useTickSound({ volume: 0.4 });
+
+  // Функция для мгновенного завершения
+  const skipToEnd = useCallback(() => {
+    if (!stripRef.current || winnerRevealed) return;
+
+    // Останавливаем текущую анимацию
+    if (timelineRef.current) {
+      timelineRef.current.kill();
+    }
+    if (tickIntervalRef.current) {
+      clearInterval(tickIntervalRef.current);
+    }
+
+    // Рассчитываем финальную позицию
+    const centerOffset = (VISIBLE_ITEMS / 2) * ITEM_WIDTH - ITEM_WIDTH / 2;
+    const winningPosition = spin.winningIndex * ITEM_WIDTH;
+    const finalX = -(winningPosition - centerOffset);
+
+    // Мгновенно перемещаем к результату
+    gsap.set(stripRef.current, { x: finalX });
+    setWinnerRevealed(true);
+
+    // Вызываем завершение
+    const winningItem = spin.items[spin.winningIndex];
+    onSpinComplete({
+      item: winningItem,
+      spinIndex: spin.winningIndex,
+      timestamp: Date.now(),
+    });
+  }, [spin, winnerRevealed, onSpinComplete]);
 
   const startSpin = useCallback(() => {
     if (!stripRef.current || hasSpun) return;
@@ -28,22 +65,23 @@ export function SpinWheel({ spin, isSpinning, onSpinComplete }: SpinWheelProps) 
     setHasSpun(true);
     setWinnerRevealed(false);
 
+    const winningItem = spin.items[spin.winningIndex];
+    const isEpicDrop = winningItem.rarity === "legendary" || winningItem.rarity === "mythic";
+
     // Calculate the final position
-    // We want the winning item to be in the center
     const centerOffset = (VISIBLE_ITEMS / 2) * ITEM_WIDTH - ITEM_WIDTH / 2;
     const winningPosition = spin.winningIndex * ITEM_WIDTH;
     const finalX = -(winningPosition - centerOffset);
 
     // Add some randomness to the final position within the item
-    const randomOffset = Math.random() * 40 - 20; // -20 to +20 pixels
+    const randomOffset = Math.random() * 40 - 20;
 
     // Animate using GSAP for more control
     const tl = gsap.timeline({
       onComplete: () => {
         setWinnerRevealed(true);
+        timelineRef.current = null;
 
-        // Trigger completion with the winning item
-        const winningItem = spin.items[spin.winningIndex];
         onSpinComplete({
           item: winningItem,
           spinIndex: spin.winningIndex,
@@ -52,27 +90,68 @@ export function SpinWheel({ spin, isSpinning, onSpinComplete }: SpinWheelProps) 
       },
     });
 
-    // Custom easing that feels like a real spin
-    tl.to(stripRef.current, {
-      x: finalX + randomOffset,
-      duration: spin.duration / 1000,
-      ease: "power2.out",
-    });
+    timelineRef.current = tl;
 
-    // Add tick sounds effect by pulsing opacity
+    let totalDuration: number;
+
+    if (fastMode) {
+      // Fast mode - simple animation
+      totalDuration = 0.8;
+      tl.to(stripRef.current, {
+        x: finalX + randomOffset,
+        duration: totalDuration,
+        ease: "power1.out",
+      });
+    } else if (isEpicDrop) {
+      // EPIC animation for legendary/mythic!
+      // With 200 items on the strip, we have plenty of room
+      const totalDistance = Math.abs(finalX + randomOffset);
+
+      totalDuration = 9; // 9 seconds total
+
+      // Phase 1: VERY FAST spinning with acceleration (7.5 sec)
+      tl.to(stripRef.current, {
+        x: -totalDistance * 0.85,
+        duration: 7.5,
+        ease: "power1.in", // Accelerating - gets faster toward the end
+      })
+      // Phase 2: Dramatic sudden stop (1.5 sec)
+      .to(stripRef.current, {
+        x: finalX + randomOffset,
+        duration: 1.5,
+        ease: "power4.out",
+      });
+    } else {
+      // Normal animation
+      totalDuration = spin.duration / 1000;
+      tl.to(stripRef.current, {
+        x: finalX + randomOffset,
+        duration: totalDuration,
+        ease: "power2.out",
+      });
+    }
+
+    // Tick sound effect - play when passing each item
+    lastTickPositionRef.current = 0;
+
     const tickInterval = setInterval(() => {
       if (stripRef.current) {
-        gsap.to(stripRef.current, {
-          opacity: 0.95,
-          duration: 0.05,
-          yoyo: true,
-          repeat: 1,
-        });
-      }
-    }, 80);
+        const currentX = Math.abs(gsap.getProperty(stripRef.current, "x") as number);
+        const itemsPassed = Math.floor(currentX / ITEM_WIDTH);
 
-    setTimeout(() => clearInterval(tickInterval), spin.duration - 500);
-  }, [hasSpun, spin, onSpinComplete]);
+        if (itemsPassed > lastTickPositionRef.current) {
+          playTick();
+          lastTickPositionRef.current = itemsPassed;
+        }
+      }
+    }, 16); // ~60fps check
+
+    tickIntervalRef.current = tickInterval;
+    setTimeout(() => {
+      clearInterval(tickInterval);
+      tickIntervalRef.current = null;
+    }, (totalDuration * 1000) - 50);
+  }, [hasSpun, spin, onSpinComplete, fastMode, playTick]);
 
   useEffect(() => {
     if (isSpinning && !hasSpun) {
@@ -145,14 +224,21 @@ export function SpinWheel({ spin, isSpinning, onSpinComplete }: SpinWheelProps) 
         </div>
       </div>
 
-      {/* Spinning indicator */}
-      {isSpinning && !winnerRevealed && (
+      {/* Skip button */}
+      {isSpinning && !winnerRevealed && !fastMode && (
         <motion.div
-          className="absolute -bottom-12 left-1/2 -translate-x-1/2 text-white font-bold"
-          animate={{ opacity: [1, 0.5, 1] }}
-          transition={{ duration: 0.5, repeat: Number.POSITIVE_INFINITY }}
+          className="absolute -bottom-12 left-1/2 -translate-x-1/2"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
         >
-          КРУТИТСЯ...
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={skipToEnd}
+            className="text-xs border-white/30 text-white hover:bg-white/20 hover:scale-105 active:scale-95 transition-all"
+          >
+            ⏭️ Пропустить
+          </Button>
         </motion.div>
       )}
     </div>

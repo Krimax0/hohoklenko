@@ -3,12 +3,17 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { gsap } from "gsap";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Snowfall } from "@/components/effects/Snowfall";
 import { useGameStore } from "@/stores/gameStore";
 import { VALID_NICKNAMES } from "@/data/players";
+
+const KrutkaIcon = ({ size = 24 }: { size?: number }) => (
+  <Image src="/krutka.png" alt="Крутка" width={size} height={size} className="inline-block" />
+);
 
 export function LoginScreen() {
   const [nickname, setNickname] = useState("");
@@ -251,7 +256,7 @@ export function LoginScreen() {
             </motion.span>
           </CardTitle>
           <CardDescription className="text-amber-200/60">
-            Введите ваш никнейм для получения подарков
+            Введите ваш никнейм для получения круток
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -294,7 +299,7 @@ export function LoginScreen() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                🎁 ОТКРЫТЬ ПОДАРКИ 🎁
+                <KrutkaIcon size={24} /> КРУТИТЬ <KrutkaIcon size={24} />
               </motion.span>
             </Button>
           </form>
@@ -312,24 +317,26 @@ export function LoginScreen() {
           repeat: Number.POSITIVE_INFINITY,
         }}
       >
-        <p>Выберите получателя подарков:</p>
+        <p>Выберите игрока:</p>
         <div className="flex gap-4 mt-2">
-          <motion.span
-            className="px-4 py-2 bg-red-500/20 rounded-full cursor-pointer hover:bg-red-500/40 transition-colors border border-red-500/30"
+          <motion.button
+            className="flex items-center gap-2 px-4 py-2 bg-red-500/20 rounded-full cursor-pointer hover:bg-red-500/40 transition-colors border border-red-500/30"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => setNickname("KLENKO")}
           >
-            🎅 KLENKO
-          </motion.span>
-          <motion.span
-            className="px-4 py-2 bg-green-500/20 rounded-full cursor-pointer hover:bg-green-500/40 transition-colors border border-green-500/30"
+            <Image src="/klenko.jpg" alt="KLENKO" width={24} height={24} className="rounded-full" />
+            KLENKO
+          </motion.button>
+          <motion.button
+            className="flex items-center gap-2 px-4 py-2 bg-green-500/20 rounded-full cursor-pointer hover:bg-green-500/40 transition-colors border border-green-500/30"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => setNickname("HOHOYKS")}
           >
-            🎄 HOHOYKS
-          </motion.span>
+            <Image src="/hohoyks.jpg" alt="HOHOYKS" width={24} height={24} className="rounded-full" />
+            HOHOYKS
+          </motion.button>
         </div>
       </motion.div>
 

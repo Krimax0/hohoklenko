@@ -35,7 +35,7 @@ export function SpinItemCard({
   return (
     <motion.div
       className={cn(
-        "relative flex flex-col items-center justify-center rounded-xl border-2 overflow-hidden",
+        "relative flex flex-col items-center justify-center rounded-xl border-2 overflow-hidden group",
         sizeClasses[size],
         isWinner && "ring-4 ring-white"
       )}
@@ -74,20 +74,27 @@ export function SpinItemCard({
       />
 
       {/* Emoji/Image */}
-      <span className={cn(emojiSizes[size], "relative z-10 drop-shadow-lg")}>
+      <span className={cn(
+        emojiSizes[size],
+        "relative z-10 drop-shadow-lg transition-opacity",
+        showDetails && "group-hover:opacity-0 pointer-events-none"
+      )}>
         {item.image}
       </span>
 
       {/* Rarity indicator */}
       <div
-        className="absolute bottom-1 left-1 right-1 text-center text-[10px] font-bold uppercase tracking-wider py-0.5 rounded bg-black/30"
+        className={cn(
+          "absolute bottom-1 left-1 right-1 text-center text-[10px] font-bold uppercase tracking-wider py-0.5 rounded bg-black/30 transition-opacity",
+          showDetails && "group-hover:opacity-0 pointer-events-none"
+        )}
         style={{ color: config.color }}
       >
         {config.name}
       </div>
 
       {showDetails && (
-        <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center p-2 opacity-0 hover:opacity-100 transition-opacity">
+        <div className="absolute inset-0 z-20 bg-black/80 flex flex-col items-center justify-center p-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <span className="text-white text-xs font-bold text-center">
             {item.name}
           </span>
