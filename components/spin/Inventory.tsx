@@ -1,0 +1,185 @@
+"use client";
+
+import { motion, AnimatePresence } from "framer-motion";
+import { SpinItemCard } from "./SpinItem";
+import type { SpinResult, Rarity } from "@/types/spin";
+import { RARITY_CONFIG } from "@/types/spin";
+import { useState } from "react";
+
+interface InventoryProps {
+  items: SpinResult[];
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const RARITY_ORDER: Rarity[] = [
+  "mythic",
+  "legendary",
+  "epic",
+  "rare",
+  "uncommon",
+  "common",
+];
+
+export function Inventory({ items, isOpen, onClose }: InventoryProps) {
+  const [selectedRarity, setSelectedRarity] = useState<Rarity | "all">("all");
+
+  // Group items by rarity
+  const groupedItems = items.reduce((acc, result) => {
+    const rarity = result.item.rarity;
+    if (!acc[rarity]) acc[rarity] = [];
+    acc[rarity].push(result);
+    return acc;
+  }, {} as Record<Rarity, SpinResult[]>);
+
+  // Filter items based on selection
+  const filteredItems =
+    selectedRarity === "all"
+      ? items
+      : items.filter((r) => r.item.rarity === selectedRarity);
+
+  // Count by rarity
+  const rarityCounts = RARITY_ORDER.map((rarity) => ({
+    rarity,
+    count: groupedItems[rarity]?.length || 0,
+    config: RARITY_CONFIG[rarity],
+  }));
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="fixed inset-0 z-40 flex items-center justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          {/* Backdrop */}
+          <motion.div
+            className="absolute inset-0 bg-black/90 backdrop-blur-md"
+            onClick={onClose}
+          />
+
+          {/* Content */}
+          <motion.div
+            className="relative z-10 w-full max-w-4xl max-h-[80vh] m-4 bg-gray-900/90 rounded-2xl border border-white/10 overflow-hidden"
+            initial={{ scale: 0.9, y: 50 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.9, y: 50 }}
+          >
+            {/* Header */}
+            <div className="p-6 border-b border-white/10">
+              <div className="flex items-center justify-between">
+                <h2 className="text-3xl font-bold text-white flex items-center gap-3">
+                  <span>🎒</span>
+                  Инвентарь
+                  <span className="text-lg text-gray-400">
+                    ({items.length} предметов)
+                  </span>
+                </h2>
+                <motion.button
+                  className="text-gray-400 hover:text-white text-2xl"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={onClose}
+                >
+                  ✕
+                </motion.button>
+              </div>
+
+              {/* Rarity filters */}
+              <div className="flex flex-wrap gap-2 mt-4">
+                <motion.button
+                  className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
+                    selectedRarity === "all"
+                      ? "bg-white text-black"
+                      : "bg-white/10 text-white hover:bg-white/20"
+                  }`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setSelectedRarity("all")}
+                >
+                  Все ({items.length})
+                </motion.button>
+                {rarityCounts.map(({ rarity, count, config }) =>
+                  count > 0 ? (
+                    <motion.button
+                      key={rarity}
+                      className="px-4 py-2 rounded-full text-sm font-bold transition-all"
+                      style={{
+                        background:
+                          selectedRarity === rarity
+                            ? config.bgGradient
+                            : `${config.color}20`,
+                        color:
+                          selectedRarity === rarity ? "white" : config.color,
+                        boxShadow:
+                          selectedRarity === rarity
+                            ? `0 0 10px ${config.glowColor}`
+                            : "none",
+                      }}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setSelectedRarity(rarity)}
+                    >
+                      {config.name} ({count})
+                    </motion.button>
+                  ) : null
+                )}
+              </div>
+            </div>
+
+            {/* Items grid */}
+            <div className="p-6 overflow-y-auto max-h-[calc(80vh-200px)]">
+              {filteredItems.length === 0 ? (
+                <div className="text-center text-gray-500 py-12">
+                  <span className="text-6xl block mb-4">📦</span>
+                  <p>Пока пусто. Крутите, чтобы получить предметы!</p>
+                </div>
+              ) : (
+                <motion.div
+                  className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
+                  layout
+                >
+                  {filteredItems
+                    .sort((a, b) => {
+                      const aIndex = RARITY_ORDER.indexOf(a.item.rarity);
+                      const bIndex = RARITY_ORDER.indexOf(b.item.rarity);
+                      return aIndex - bIndex;
+                    })
+                    .map((result, index) => (
+                      <motion.div
+                        key={`${result.item.id}-${result.timestamp}`}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: index * 0.05 }}
+                        layout
+                      >
+                        <SpinItemCard item={result.item} size="md" showDetails />
+                      </motion.div>
+                    ))}
+                </motion.div>
+              )}
+            </div>
+
+            {/* Stats footer */}
+            <div className="p-4 border-t border-white/10 bg-black/30">
+              <div className="flex flex-wrap justify-center gap-4 text-sm">
+                {rarityCounts.map(({ rarity, count, config }) => (
+                  <div
+                    key={rarity}
+                    className="flex items-center gap-1"
+                    style={{ color: config.color }}
+                  >
+                    <span className="font-bold">{count}</span>
+                    <span className="text-gray-400">{config.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}

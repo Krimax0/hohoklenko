@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm dlx:*)",
+      "Bash(pnpm add:*)",
+      "Bash(cat:*)",
+      "Bash(pnpm tsc:*)",
+      "WebSearch",
+      "WebFetch(domain:reactbits.dev)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:ui.shadcn.com)",
+      "Bash(curl:*)"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "shadcn"
+  ],
+  "enableAllProjectMcpServers": true
+}
