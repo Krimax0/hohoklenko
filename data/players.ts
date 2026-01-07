@@ -1,4 +1,4 @@
-import type { PlayerData, ScriptedSpin, SpinItem } from "@/types/spin";
+import type { ScriptedSpin, SpinItem, Rarity } from "@/types/spin";
 import {
   COMMON_ITEMS,
   UNCOMMON_ITEMS,
@@ -6,147 +6,68 @@ import {
   EPIC_ITEMS,
   LEGENDARY_ITEMS,
   MYTHIC_ITEMS,
+  getItemsByRarity,
 } from "./items";
 
-// Helper function to generate spin items array with winning item at specific position
-const generateSpinItems = (
-  winningItem: SpinItem,
-  winningPosition: number,
-  totalItems: number = 50
-): SpinItem[] => {
-  const items: SpinItem[] = [];
-
-  // Fill with random items, placing winning item at the correct position
-  for (let i = 0; i < totalItems; i++) {
-    if (i === winningPosition) {
-      items.push(winningItem);
-    } else {
-      // Get random items (weighted towards common/uncommon for background)
-      const rand = Math.random();
-      let pool: SpinItem[];
-      if (rand < 0.5) {
-        pool = COMMON_ITEMS;
-      } else if (rand < 0.75) {
-        pool = UNCOMMON_ITEMS;
-      } else if (rand < 0.9) {
-        pool = RARE_ITEMS;
-      } else if (rand < 0.96) {
-        pool = EPIC_ITEMS;
-      } else {
-        pool = LEGENDARY_ITEMS;
-      }
-      items.push(pool[Math.floor(Math.random() * pool.length)]);
-    }
-  }
-
-  return items;
-};
-
-// Spin template - stores winning item and duration, generates items dynamically
-interface SpinTemplate {
-  winningItem: SpinItem;
-  duration: number;
-  easing: "easeOut" | "easeInOut" | "custom";
+// ========================================
+// Система шансов выпадения для каждого игрока
+// Все значения в процентах (должны в сумме давать 100)
+// ========================================
+export interface RarityChances {
+  common: number;
+  uncommon: number;
+  rare: number;
+  epic: number;
+  legendary: number;
+  mythic: number;
 }
 
-// Create spin from template - generates fresh items each time
-const createSpinFromTemplate = (template: SpinTemplate): ScriptedSpin => {
-  const isEpicRarity = template.winningItem.rarity === "legendary" || template.winningItem.rarity === "mythic";
-  // More items for legendary/mythic to allow for longer epic spin animation
-  const totalItems = isEpicRarity ? 200 : 50;
-  const winningPosition = isEpicRarity
-    ? 150 + Math.floor(Math.random() * 20) // Win at position 150-169 for epic
-    : 35 + Math.floor(Math.random() * 10); // Win at position 35-44 for normal
-
-  return {
-    items: generateSpinItems(template.winningItem, winningPosition, totalItems),
-    winningIndex: winningPosition,
-    duration: template.duration,
-    easing: template.easing,
-  };
-};
-
-// Create spin template (not the actual spin)
-const createSpinTemplate = (
-  winningItem: SpinItem,
-  duration: number = 5000,
-  easing: "easeOut" | "easeInOut" | "custom" = "easeOut"
-): SpinTemplate => ({
-  winningItem,
-  duration,
-  easing,
-});
-
-// ========================================
-// KLENKO's New Year Gifts (10 gifts total)
-// Storyline: From coal to Christmas miracles
-// ========================================
-const KLENKO_TEMPLATES: SpinTemplate[] = [
-  createSpinTemplate(COMMON_ITEMS[0], 4000), // Кусочек Угля
-  createSpinTemplate(COMMON_ITEMS[3], 4500), // Мелкий Уголёк
-  createSpinTemplate(UNCOMMON_ITEMS[1], 5000), // Подарочная Коробка
-  createSpinTemplate(RARE_ITEMS[0], 5500), // Снежный Шар
-  createSpinTemplate(UNCOMMON_ITEMS[6], 4500), // Гирлянда
-  createSpinTemplate(EPIC_ITEMS[0], 6000), // Волшебные Сани
-  createSpinTemplate(RARE_ITEMS[4], 5000), // Новогодний Свитер
-  createSpinTemplate(EPIC_ITEMS[4], 6500), // Посох Мороза
-  createSpinTemplate(LEGENDARY_ITEMS[0], 7000), // Шапка Деда Мороза
-  createSpinTemplate(MYTHIC_ITEMS[2], 8000), // Дух Рождества
-];
-
-// ========================================
-// HOHOYKS's New Year Gifts (10 gifts total)
-// Storyline: Lucky gifts from the start!
-// ========================================
-const HOHOYKS_TEMPLATES: SpinTemplate[] = [
-  createSpinTemplate(UNCOMMON_ITEMS[1], 4000), // Подарочная Коробка
-  createSpinTemplate(RARE_ITEMS[1], 5000), // Коньки
-  createSpinTemplate(COMMON_ITEMS[5], 4000), // Старый Уголь
-  createSpinTemplate(EPIC_ITEMS[1], 6000), // Северное Сияние в Бутылке
-  createSpinTemplate(RARE_ITEMS[2], 5000), // Щелкунчик
-  createSpinTemplate(UNCOMMON_ITEMS[5], 4500), // Бубенцы
-  createSpinTemplate(LEGENDARY_ITEMS[3], 7000), // Рождественское Чудо
-  createSpinTemplate(EPIC_ITEMS[3], 5500), // Золотой Колокол
-  createSpinTemplate(LEGENDARY_ITEMS[4], 7500), // Золотая Ёлка
-  createSpinTemplate(MYTHIC_ITEMS[0], 8500), // Мешок Деда Мороза
-];
-
-// Generate spin on demand
-export const generateSpin = (nickname: string, spinIndex: number): ScriptedSpin | null => {
-  const templates = nickname.toUpperCase() === "KLENKO" ? KLENKO_TEMPLATES : HOHOYKS_TEMPLATES;
-  if (spinIndex < 0 || spinIndex >= templates.length) return null;
-  return createSpinFromTemplate(templates[spinIndex]);
-};
-
-export const getSpinCount = (nickname: string): number => {
-  const templates = nickname.toUpperCase() === "KLENKO" ? KLENKO_TEMPLATES : HOHOYKS_TEMPLATES;
-  return templates.length;
-};
-
-// ========================================
-// Player Data (without spins - they are generated dynamically)
-// ========================================
 export interface PlayerInfo {
   id: string;
   nickname: string;
   avatar: string;
+  chances: RarityChances;
+  maxSpins: number; // Максимальное количество круток (0 = бесконечно)
 }
 
+// ========================================
+// Конфигурация игроков с индивидуальными шансами
+// ========================================
 export const PLAYERS: Record<string, PlayerInfo> = {
   KLENKO: {
     id: "klenko",
     nickname: "KLENKO",
     avatar: "🎅",
+    maxSpins: 0, // Бесконечные крутки
+    chances: {
+      // KLENKO - "невезучий" персонаж, больше угля
+      common: 40,     // 40% - много угля
+      uncommon: 25,   // 25%
+      rare: 18,       // 18%
+      epic: 10,       // 10%
+      legendary: 5,   // 5%
+      mythic: 2,      // 2%
+    },
   },
   HOHOYKS: {
     id: "hohoyks",
     nickname: "HOHOYKS",
     avatar: "🎄",
+    maxSpins: 0, // Бесконечные крутки
+    chances: {
+      // HOHOYKS - более удачливый
+      common: 25,     // 25% - меньше угля
+      uncommon: 30,   // 30%
+      rare: 22,       // 22%
+      epic: 13,       // 13%
+      legendary: 7,   // 7%
+      mythic: 3,      // 3%
+    },
   },
 };
 
 // Valid nicknames
-export const VALID_NICKNAMES = ["KLENKO", "HOHOYKS"];
+export const VALID_NICKNAMES = Object.keys(PLAYERS);
 
 // Check if nickname is valid
 export const isValidNickname = (nickname: string): boolean => {
@@ -157,4 +78,159 @@ export const isValidNickname = (nickname: string): boolean => {
 export const getPlayerInfo = (nickname: string): PlayerInfo | undefined => {
   const upperNickname = nickname.toUpperCase();
   return PLAYERS[upperNickname];
+};
+
+// ========================================
+// Система рандомного выбора
+// ========================================
+
+/**
+ * Выбирает случайную редкость на основе шансов игрока
+ */
+const selectRandomRarity = (chances: RarityChances): Rarity => {
+  const random = Math.random() * 100;
+  let cumulative = 0;
+
+  const rarities: Rarity[] = ["common", "uncommon", "rare", "epic", "legendary", "mythic"];
+
+  for (const rarity of rarities) {
+    cumulative += chances[rarity];
+    if (random < cumulative) {
+      return rarity;
+    }
+  }
+
+  // Fallback на случай погрешностей округления
+  return "common";
+};
+
+/**
+ * Выбирает случайный предмет из пула по редкости
+ */
+const selectRandomItem = (rarity: Rarity): SpinItem => {
+  const items = getItemsByRarity(rarity);
+  return items[Math.floor(Math.random() * items.length)];
+};
+
+/**
+ * Генерирует список предметов для визуального отображения на барабане
+ * с победным предметом на нужной позиции
+ */
+const generateSpinItems = (
+  winningItem: SpinItem,
+  winningPosition: number,
+  totalItems: number = 50
+): SpinItem[] => {
+  const items: SpinItem[] = [];
+
+  for (let i = 0; i < totalItems; i++) {
+    if (i === winningPosition) {
+      items.push(winningItem);
+    } else {
+      // Заполняем случайными предметами (взвешено в сторону common/uncommon для фона)
+      const rand = Math.random();
+      let pool: SpinItem[];
+      if (rand < 0.5) {
+        pool = COMMON_ITEMS;
+      } else if (rand < 0.75) {
+        pool = UNCOMMON_ITEMS;
+      } else if (rand < 0.9) {
+        pool = RARE_ITEMS;
+      } else if (rand < 0.96) {
+        pool = EPIC_ITEMS;
+      } else if (rand < 0.99) {
+        pool = LEGENDARY_ITEMS;
+      } else {
+        pool = MYTHIC_ITEMS;
+      }
+      items.push(pool[Math.floor(Math.random() * pool.length)]);
+    }
+  }
+
+  return items;
+};
+
+/**
+ * Генерирует случайный спин для игрока на основе его индивидуальных шансов
+ */
+export const generateRandomSpin = (nickname: string): ScriptedSpin | null => {
+  const player = getPlayerInfo(nickname);
+  if (!player) return null;
+
+  // Выбираем случайную редкость на основе шансов игрока
+  const winningRarity = selectRandomRarity(player.chances);
+  
+  // Выбираем случайный предмет этой редкости
+  const winningItem = selectRandomItem(winningRarity);
+
+  // Определяем параметры анимации в зависимости от редкости
+  const isEpicDrop = winningRarity === "legendary" || winningRarity === "mythic";
+  const totalItems = isEpicDrop ? 200 : 50;
+  const winningPosition = isEpicDrop
+    ? 150 + Math.floor(Math.random() * 20) // Позиция 150-169 для эпических дропов
+    : 35 + Math.floor(Math.random() * 10); // Позиция 35-44 для обычных
+
+  // Длительность анимации
+  const durationMap: Record<Rarity, number> = {
+    common: 4000,
+    uncommon: 4500,
+    rare: 5500,
+    epic: 6500,
+    legendary: 7500,
+    mythic: 8500,
+  };
+
+  return {
+    items: generateSpinItems(winningItem, winningPosition, totalItems),
+    winningIndex: winningPosition,
+    duration: durationMap[winningRarity],
+    easing: "easeOut",
+  };
+};
+
+// Для совместимости - старая функция (теперь просто вызывает новую)
+export const generateSpin = (nickname: string, _spinIndex: number): ScriptedSpin | null => {
+  return generateRandomSpin(nickname);
+};
+
+// Возвращает максимальное количество спинов (0 = бесконечно)
+export const getSpinCount = (nickname: string): number => {
+  const player = getPlayerInfo(nickname);
+  return player?.maxSpins ?? 10; // По умолчанию 10 если игрок не найден
+};
+
+// Проверяет, есть ли ещё спины у игрока
+export const hasSpinsRemaining = (nickname: string, currentSpinIndex: number): boolean => {
+  const player = getPlayerInfo(nickname);
+  if (!player) return false;
+  
+  // Если maxSpins = 0, то крутки бесконечны
+  if (player.maxSpins === 0) return true;
+  
+  return currentSpinIndex < player.maxSpins;
+};
+
+/**
+ * Получить отформатированные шансы для отображения в UI
+ */
+export const getFormattedChances = (nickname: string): { rarity: Rarity; name: string; chance: number }[] => {
+  const player = getPlayerInfo(nickname);
+  if (!player) return [];
+
+  const rarityNames: Record<Rarity, string> = {
+    common: "Обычный",
+    uncommon: "Необычный",
+    rare: "Редкий",
+    epic: "Эпический",
+    legendary: "Легендарный",
+    mythic: "Мифический",
+  };
+
+  const rarities: Rarity[] = ["common", "uncommon", "rare", "epic", "legendary", "mythic"];
+  
+  return rarities.map((rarity) => ({
+    rarity,
+    name: rarityNames[rarity],
+    chance: player.chances[rarity],
+  }));
 };

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { SpinResult, ScriptedSpin } from "@/types/spin";
-import { getPlayerInfo, generateSpin, getSpinCount } from "@/data/players";
+import { getPlayerInfo, generateRandomSpin, hasSpinsRemaining } from "@/data/players";
 
 interface PlayerState {
   id: string;
@@ -17,14 +17,14 @@ interface GameState {
   isSpinning: boolean;
   lastResult: SpinResult | null;
   showVictoryScreen: boolean;
-  currentSpin: ScriptedSpin | null; // Храним текущий спин в состоянии
+  currentSpin: ScriptedSpin | null;
 }
 
 interface GameStore extends GameState {
   // Actions
   login: (nickname: string) => boolean;
   logout: () => void;
-  prepareSpin: () => void; // Генерирует спин перед началом
+  prepareSpin: () => void;
   startSpin: () => void;
   completeSpin: (result: SpinResult) => void;
   closeVictoryScreen: () => void;
@@ -47,8 +47,8 @@ export const useGameStore = create<GameStore>()(
       login: (nickname: string) => {
         const playerInfo = getPlayerInfo(nickname);
         if (playerInfo) {
-          // Генерируем первый спин сразу при логине
-          const firstSpin = generateSpin(nickname, 0);
+          // Генерируем первый спин сразу при логине (теперь рандомный)
+          const firstSpin = generateRandomSpin(nickname);
           set({
             isAuthenticated: true,
             currentPlayer: {
@@ -77,7 +77,7 @@ export const useGameStore = create<GameStore>()(
         });
       },
 
-      // Prepare spin - генерирует спин ОДИН раз перед началом
+      // Prepare spin - генерирует НОВЫЙ рандомный спин
       prepareSpin: () => {
         const { currentPlayer, currentSpin } = get();
         if (!currentPlayer) return;
@@ -85,10 +85,11 @@ export const useGameStore = create<GameStore>()(
         // Если спин уже есть - не перегенерируем
         if (currentSpin) return;
 
-        const spinCount = getSpinCount(currentPlayer.nickname);
-        if (currentPlayer.currentSpinIndex >= spinCount) return;
+        // Проверяем, есть ли ещё крутки
+        if (!hasSpinsRemaining(currentPlayer.nickname, currentPlayer.currentSpinIndex)) return;
 
-        const newSpin = generateSpin(currentPlayer.nickname, currentPlayer.currentSpinIndex);
+        // Генерируем новый рандомный спин
+        const newSpin = generateRandomSpin(currentPlayer.nickname);
         set({ currentSpin: newSpin });
       },
 
@@ -97,8 +98,8 @@ export const useGameStore = create<GameStore>()(
         const { currentPlayer, currentSpin } = get();
         if (!currentPlayer || !currentSpin) return;
 
-        const spinCount = getSpinCount(currentPlayer.nickname);
-        if (currentPlayer.currentSpinIndex >= spinCount) return;
+        // Проверяем, есть ли ещё крутки
+        if (!hasSpinsRemaining(currentPlayer.nickname, currentPlayer.currentSpinIndex)) return;
 
         set({ isSpinning: true, showVictoryScreen: false });
       },
@@ -115,15 +116,17 @@ export const useGameStore = create<GameStore>()(
           inventory: [...currentPlayer.inventory, result],
         };
 
-        // Генерируем следующий спин заранее (или null если спинов больше нет)
-        const nextSpin = generateSpin(currentPlayer.nickname, newSpinIndex);
+        // Генерируем НОВЫЙ рандомный спин для следующей крутки
+        const nextSpin = hasSpinsRemaining(currentPlayer.nickname, newSpinIndex)
+          ? generateRandomSpin(currentPlayer.nickname)
+          : null;
 
         set({
           isSpinning: false,
           lastResult: result,
           showVictoryScreen: true,
           currentPlayer: updatedPlayer,
-          currentSpin: nextSpin, // Устанавливаем следующий спин
+          currentSpin: nextSpin,
         });
       },
 
@@ -139,8 +142,8 @@ export const useGameStore = create<GameStore>()(
 
         const playerInfo = getPlayerInfo(currentPlayer.nickname);
         if (playerInfo) {
-          // Генерируем первый спин при сбросе
-          const firstSpin = generateSpin(currentPlayer.nickname, 0);
+          // Генерируем новый рандомный спин при сбросе
+          const firstSpin = generateRandomSpin(currentPlayer.nickname);
           set({
             currentPlayer: {
               id: playerInfo.id,
@@ -162,20 +165,20 @@ export const useGameStore = create<GameStore>()(
         const { currentPlayer } = get();
         if (!currentPlayer) return false;
 
-        const spinCount = getSpinCount(currentPlayer.nickname);
-        return currentPlayer.currentSpinIndex < spinCount;
+        return hasSpinsRemaining(currentPlayer.nickname, currentPlayer.currentSpinIndex);
       },
     }),
     {
-      name: "hohoklenko-game-storage-v3", // Новая версия для очистки старых данных
+      name: "hohoklenko-game-storage-v4", // Новая версия для очистки старых данных
       partialize: (state) => ({
         isAuthenticated: state.isAuthenticated,
         currentPlayer: state.currentPlayer,
       }),
-      // При восстановлении состояния - генерируем спин
+      // При восстановлении состояния - генерируем новый рандомный спин
       onRehydrateStorage: () => (state) => {
         if (state?.currentPlayer) {
-          const spin = generateSpin(state.currentPlayer.nickname, state.currentPlayer.currentSpinIndex);
+          // Генерируем новый рандомный спин при восстановлении
+          const spin = generateRandomSpin(state.currentPlayer.nickname);
           state.currentSpin = spin;
         }
       },

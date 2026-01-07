@@ -11,8 +11,9 @@ import { Inventory } from "@/components/spin/Inventory";
 import { Snowfall } from "@/components/effects/Snowfall";
 import Aurora from "@/components/Aurora";
 import { useGameStore } from "@/stores/gameStore";
-import { getSpinCount } from "@/data/players";
+import { getFormattedChances, getPlayerInfo } from "@/data/players";
 import type { SpinResult } from "@/types/spin";
+import { RARITY_CONFIG } from "@/types/spin";
 
 const KrutkaIcon = ({ size = 24 }: { size?: number }) => (
   <Image src="/krutka.png" alt="Крутка" width={size} height={size} className="inline-block" />
@@ -20,6 +21,7 @@ const KrutkaIcon = ({ size = 24 }: { size?: number }) => (
 
 export function GameScreen() {
   const [showInventory, setShowInventory] = useState(false);
+  const [showChances, setShowChances] = useState(false);
   const [autoMode, setAutoMode] = useState(false);
   const autoTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -34,14 +36,21 @@ export function GameScreen() {
     closeVictoryScreen,
     logout,
     resetPlayer,
+    hasMoreSpins,
   } = useGameStore();
 
-  // Вычисляем локально чтобы гарантировать ре-рендер
-  const totalSpins = currentPlayer ? getSpinCount(currentPlayer.nickname) : 0;
-  const spinsRemaining = currentPlayer ? totalSpins - currentPlayer.currentSpinIndex : 0;
-  const hasSpinsLeft = spinsRemaining > 0;
-
+  // Проверяем есть ли крутки
+  const hasSpinsLeft = hasMoreSpins();
   const canSpin = hasSpinsLeft && !isSpinning && currentSpin !== null;
+  
+  // Получаем информацию об игроке для отображения шансов
+  const playerInfo = currentPlayer ? getPlayerInfo(currentPlayer.nickname) : null;
+  const isInfiniteSpins = playerInfo?.maxSpins === 0;
+  
+  // Автопрокрутка доступна только после 20 круток
+  const AUTO_SPIN_UNLOCK_THRESHOLD = 20;
+  const canUseAutoSpin = currentPlayer ? currentPlayer.currentSpinIndex >= AUTO_SPIN_UNLOCK_THRESHOLD : false;
+  const spinsUntilAutoUnlock = currentPlayer ? Math.max(0, AUTO_SPIN_UNLOCK_THRESHOLD - currentPlayer.currentSpinIndex) : AUTO_SPIN_UNLOCK_THRESHOLD;
 
   useEffect(() => {
     // Entrance animations
@@ -73,8 +82,19 @@ export function GameScreen() {
   };
 
   // Авто-крутка: автоматически закрываем VictoryScreen и начинаем следующий спин
+  // НО останавливаемся при выпадении legendary или mythic!
   useEffect(() => {
     if (autoMode && showVictoryScreen && hasSpinsLeft) {
+      // Проверяем редкость последнего выпавшего предмета
+      const isEpicDrop = lastResult?.item.rarity === "legendary" || lastResult?.item.rarity === "mythic";
+      
+      if (isEpicDrop) {
+        // Останавливаем автокрутку при легендарном/мифическом дропе
+        setAutoMode(false);
+        // Не закрываем экран награды автоматически!
+        return;
+      }
+      
       autoTimerRef.current = setTimeout(() => {
         closeVictoryScreen();
         // Небольшая задержка перед следующим спином
@@ -89,7 +109,7 @@ export function GameScreen() {
         clearTimeout(autoTimerRef.current);
       }
     };
-  }, [autoMode, showVictoryScreen, hasSpinsLeft, closeVictoryScreen, startSpin]);
+  }, [autoMode, showVictoryScreen, hasSpinsLeft, lastResult, closeVictoryScreen, startSpin]);
 
   // Выключаем авто-режим когда крутки закончились
   useEffect(() => {
@@ -111,6 +131,9 @@ export function GameScreen() {
   };
 
   if (!currentPlayer) return null;
+
+  // Получаем шансы для отображения
+  const chances = getFormattedChances(currentPlayer.nickname);
 
   return (
     <div className="relative min-h-screen flex flex-col bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 overflow-hidden">
@@ -171,16 +194,30 @@ export function GameScreen() {
                 {currentPlayer.nickname}
               </h2>
               <p className="text-sm text-amber-200/70 flex items-center gap-1">
-                <KrutkaIcon size={16} /> Круток осталось:{" "}
+                <KrutkaIcon size={16} /> Сделано круток:{" "}
                 <span className="text-amber-400 font-bold">
-                  {spinsRemaining}
+                  {currentPlayer.currentSpinIndex}
                 </span>
+                {isInfiniteSpins && (
+                  <span className="ml-1 text-green-400">∞</span>
+                )}
               </p>
             </div>
           </div>
 
           {/* Actions */}
           <div className="flex items-center gap-2 md:gap-4">
+            {/* Chances button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative p-3 h-auto w-auto rounded-full bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 hover:scale-110 active:scale-95 transition-all"
+              onClick={() => setShowChances(!showChances)}
+              title="Шансы выпадения"
+            >
+              <span className="text-xl md:text-2xl">🎲</span>
+            </Button>
+
             <Button
               variant="ghost"
               size="icon"
@@ -217,6 +254,49 @@ export function GameScreen() {
           </div>
         </div>
       </header>
+
+      {/* Chances popup */}
+      {showChances && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="absolute top-28 right-4 z-30 bg-black/80 backdrop-blur-xl rounded-xl border border-white/20 p-4 shadow-2xl"
+        >
+          <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+            🎲 Твои шансы выпадения
+          </h3>
+          <div className="space-y-2">
+            {chances.map(({ rarity, name, chance }) => {
+              const config = RARITY_CONFIG[rarity];
+              return (
+                <div key={rarity} className="flex items-center justify-between gap-4">
+                  <span className="flex items-center gap-2">
+                    <span
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: config.color }}
+                    />
+                    <span className="text-sm" style={{ color: config.color }}>
+                      {name}
+                    </span>
+                  </span>
+                  <span className="text-sm font-mono text-white">
+                    {chance}%
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full mt-3 text-white/60 hover:text-white"
+            onClick={() => setShowChances(false)}
+          >
+            Закрыть
+          </Button>
+        </motion.div>
+      )}
 
       {/* Main content */}
       <main className="flex-1 flex flex-col items-center justify-center px-4 py-8 relative z-10">
@@ -287,16 +367,23 @@ export function GameScreen() {
                 </span>
               </Button>
 
-              {spinsRemaining > 1 && !isSpinning && (
+              {!isSpinning && canUseAutoSpin && (
                 <Button
                   size="lg"
                   onClick={handleStartAuto}
                   className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold shadow-lg"
                 >
                   <span className="flex items-center gap-2">
-                    ⚡ АВТО ({spinsRemaining})
+                    ⚡ АВТО
                   </span>
                 </Button>
+              )}
+              
+              {!isSpinning && !canUseAutoSpin && spinsUntilAutoUnlock > 0 && (
+                <div className="text-sm text-white/50 flex items-center gap-2">
+                  <span className="text-lg">🔒</span>
+                  <span>Авто через {spinsUntilAutoUnlock} круток</span>
+                </div>
               )}
             </div>
           )}
@@ -310,7 +397,6 @@ export function GameScreen() {
                 transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY }}
               >
                 ⚡ АВТО-КРУТКА ⚡
-                <span className="text-white">({spinsRemaining} осталось)</span>
               </motion.div>
               <Button
                 size="lg"
@@ -333,32 +419,41 @@ export function GameScreen() {
                 <KrutkaIcon size={20} /> Посмотреть крутки
               </Button>
               <Button variant="outline" size="lg" onClick={resetPlayer} className="border-white/30 text-white hover:bg-white/10">
-                🔄 Получить снова
+                🔄 Начать заново
               </Button>
             </div>
           )}
         </div>
 
-        {/* Progress indicator */}
+        {/* Stats indicator */}
         <div className="mt-8 w-full max-w-md">
           <div className="flex justify-between text-sm text-amber-200/70 mb-2">
-            <span>Сделано круток</span>
-            <span>
-              {currentPlayer.currentSpinIndex}/{totalSpins}
+            <span>Всего круток сделано</span>
+            <span className="text-amber-400 font-bold">
+              {currentPlayer.currentSpinIndex}
             </span>
           </div>
-          <div className="h-3 bg-white/10 rounded-full overflow-hidden border border-white/20">
-            <motion.div
-              className="h-full bg-gradient-to-r from-red-500 via-amber-400 to-green-500"
-              initial={{ width: 0 }}
-              animate={{
-                width: `${
-                  (currentPlayer.currentSpinIndex / totalSpins) *
-                  100
-                }%`,
-              }}
-              transition={{ duration: 0.5 }}
-            />
+          {/* Stats by rarity */}
+          <div className="flex flex-wrap gap-2 justify-center mt-4">
+            {chances.map(({ rarity, name }) => {
+              const config = RARITY_CONFIG[rarity];
+              const count = currentPlayer.inventory.filter(r => r.item.rarity === rarity).length;
+              if (count === 0) return null;
+              return (
+                <div
+                  key={rarity}
+                  className="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1"
+                  style={{
+                    backgroundColor: `${config.color}20`,
+                    border: `1px solid ${config.color}40`,
+                    color: config.color,
+                  }}
+                >
+                  <span>{name}</span>
+                  <span className="text-white">×{count}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </main>
