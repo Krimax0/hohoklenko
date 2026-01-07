@@ -71,6 +71,48 @@ export const KLENKO_DIVINE: SpinItem[] = [
 ];
 
 // ========================================
+// АДСКИЕ ВЕРСИИ предметов для KLENKO (когда реальность искажается)
+// ========================================
+export const KLENKO_HELLISH_ITEMS: SpinItem[] = [
+  // Common (8 предметов) - адский уголь
+  createItem("klenko_hell_coal_piece", "🔥 Адский Уголь", "Горит вечным пламенем", "common", "🔥"),
+  createItem("klenko_hell_coal_chunk", "🔥 Пылающий Брикет", "Обжигает душу", "common", "💀"),
+  createItem("klenko_hell_coal_dust", "🔥 Пепел Проклятых", "Остатки грешников", "common", "☠️"),
+  createItem("klenko_hell_coal_small", "🔥 Искра Ада", "Маленькая, но опасная", "common", "⚡"),
+  createItem("klenko_hell_coal_shiny", "🔥 Кровавый Алмаз", "Пропитан страданиями", "common", "💎"),
+  createItem("klenko_hell_coal_old", "🔥 Древний Пепел", "Из первого круга ада", "common", "🌑"),
+  createItem("klenko_hell_coal_warm", "🔥 Жар Преисподней", "Никогда не остынет", "common", "🌋"),
+  createItem("klenko_hell_coal_gift", "🔥 Проклятый Дар", "Подарок от самого дьявола", "common", "👹"),
+
+  // Uncommon (4 предмета)
+  createItem("klenko_hell_christmas_ball", "🔥 Шар Проклятий", "Отражает твои грехи", "uncommon", "🔴"),
+  createItem("klenko_hell_gift_box", "🔥 Ящик Пандоры", "Лучше не открывать", "uncommon", "📦"),
+  createItem("klenko_hell_wreath", "🔥 Венок Шипов", "Колючий и опасный", "uncommon", "🥀"),
+  createItem("klenko_hell_star_cookie", "🔥 Печенье Отчаяния", "Горькое на вкус", "uncommon", "🍪"),
+
+  // Rare (3 предмета)
+  createItem("klenko_hell_snow_globe", "🔥 Шар Кошмаров", "Внутри вечная тьма", "rare", "🌑"),
+  createItem("klenko_hell_ice_skates", "🔥 Коньки Страданий", "Режут по льду ада", "rare", "⛸️"),
+  createItem("klenko_hell_nutcracker", "🔥 Костолом", "Ломает не только орехи", "rare", "💀"),
+
+  // Epic (2 предмета)
+  createItem("klenko_hell_magic_sleigh", "🔥 Колесница Ада", "Везет прямо в преисподнюю", "epic", "🛷"),
+  createItem("klenko_hell_aurora_bottle", "🔥 Кровавое Сияние", "Северное сияние из ада", "epic", "🩸"),
+
+  // Legendary (2 предмета)
+  createItem("klenko_hell_santas_hat", "🔥 Шапка Крампуса", "Носит демон Рождества", "legendary", "👹"),
+  createItem("klenko_hell_infinite_gift", "🔥 Бесконечное Проклятие", "Дарит только страдания", "legendary", "💀"),
+
+  // Mythic (1 предмет)
+  createItem("klenko_hell_santas_bag", "🔥 Мешок Душ", "Вмещает души грешников", "mythic", "👻"),
+];
+
+// Divine для KLENKO в адском режиме
+export const KLENKO_HELLISH_DIVINE: SpinItem[] = [
+  createItem("klenko_hell_minecraft_key", "🔥 Проклятый Ключ Minecraft", "Ключ, выкованный в аду! Лицензия Minecraft Java Edition... но какой ценой?", "divine", "🗝️"),
+];
+
+// ========================================
 // Пул предметов для HOHOYKS - "удачливый" персонаж
 // ========================================
 export const HOHOYKS_ITEMS: SpinItem[] = [
@@ -107,6 +149,10 @@ export const HOHOYKS_ITEMS: SpinItem[] = [
   createItem("hohoyks_time_crystal", "Кристалл Времени", "Останавливает полночь навечно", "mythic", "💎"),
 ];
 
+// SECRET LEGENDARY для HOHOYKS - Крутка Бесконечности
+export const HOHOYKS_SECRET_LEGENDARY: SpinItem =
+  createItem("hohoyks_infinity_spin", "⚡ Крутка Бесконечности ⚡", "Легендарный артефакт из альтернативной вселенной! Дарует бесконечные крутки!", "legendary", "♾️");
+
 // Divine для HOHOYKS
 export const HOHOYKS_DIVINE: SpinItem[] = [
   createItem("hohoyks_minecraft_key", "🎁 Ключ Minecraft для HOHOYKS", "Особый подарок от создателя! Лицензия Minecraft Java Edition", "divine", "🔑"),
@@ -120,9 +166,13 @@ export const HOHOYKS_ALL_ITEMS: SpinItem[] = [...HOHOYKS_ITEMS, ...HOHOYKS_DIVIN
 export const ALL_ITEMS: SpinItem[] = [...KLENKO_ALL_ITEMS, ...HOHOYKS_ALL_ITEMS];
 
 // Helper function to get player's item pool
-export const getPlayerItems = (nickname: string): SpinItem[] => {
+export const getPlayerItems = (nickname: string, hellMode: boolean = false): SpinItem[] => {
   const upperNickname = nickname.toUpperCase();
   if (upperNickname === "KLENKO") {
+    // В адском режиме возвращаем адские предметы с адским divine
+    if (hellMode) {
+      return [...KLENKO_HELLISH_ITEMS, ...KLENKO_HELLISH_DIVINE];
+    }
     return KLENKO_ALL_ITEMS;
   } else if (upperNickname === "HOHOYKS") {
     return HOHOYKS_ALL_ITEMS;
@@ -131,8 +181,8 @@ export const getPlayerItems = (nickname: string): SpinItem[] => {
 };
 
 // Helper function to get items by rarity for specific player
-export const getItemsByRarity = (rarity: Rarity, nickname: string): SpinItem[] => {
-  const playerItems = getPlayerItems(nickname);
+export const getItemsByRarity = (rarity: Rarity, nickname: string, hellMode: boolean = false): SpinItem[] => {
+  const playerItems = getPlayerItems(nickname, hellMode);
   return playerItems.filter(item => item.rarity === rarity);
 };
 

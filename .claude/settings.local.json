@@ -9,11 +9,12 @@
       "WebFetch(domain:reactbits.dev)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:ui.shadcn.com)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Skill(frontend-design)"
     ]
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "shadcn"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }

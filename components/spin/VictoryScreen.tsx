@@ -24,6 +24,7 @@ interface VictoryScreenProps {
   isVisible: boolean;
   onClose: () => void;
   hasMoreSpins: boolean;
+  hellMode?: boolean;
 }
 
 export function VictoryScreen({
@@ -31,6 +32,7 @@ export function VictoryScreen({
   isVisible,
   onClose,
   hasMoreSpins,
+  hellMode = false,
 }: VictoryScreenProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const config = RARITY_CONFIG[result.item.rarity];
@@ -104,6 +106,22 @@ export function VictoryScreen({
   };
 
   const getRarityEmoji = () => {
+    if (hellMode) {
+      switch (result.item.rarity) {
+        case "mythic":
+          return "👹🔥💀";
+        case "legendary":
+          return "🔥💀🔥";
+        case "epic":
+          return "💀🔥💀";
+        case "rare":
+          return "🔥👻🔥";
+        case "uncommon":
+          return "👻💀👻";
+        default:
+          return "🔥";
+      }
+    }
     switch (result.item.rarity) {
       case "mythic":
         return "🎅✨🎄";
@@ -121,6 +139,22 @@ export function VictoryScreen({
   };
 
   const getVictoryTitle = () => {
+    if (hellMode) {
+      switch (result.item.rarity) {
+        case "mythic":
+          return "ПРОКЛЯТИЕ!";
+        case "legendary":
+          return "КОШМАР!";
+        case "epic":
+          return "УЖАС!";
+        case "rare":
+          return "ТЬМА!";
+        case "uncommon":
+          return "МРАК!";
+        default:
+          return "ПЕПЕЛ!";
+      }
+    }
     switch (result.item.rarity) {
       case "mythic":
         return "ЧУДО!";
@@ -147,9 +181,9 @@ export function VictoryScreen({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
-          {/* Backdrop with Christmas gradient */}
+          {/* Backdrop with Christmas/Hell gradient */}
           <motion.div
-            className="absolute inset-0 bg-gradient-to-br from-slate-900/95 via-blue-950/95 to-slate-900/95 backdrop-blur-md"
+            className={`absolute inset-0 ${hellMode ? "bg-gradient-to-br from-red-950/95 via-black/95 to-red-950/95" : "bg-gradient-to-br from-slate-900/95 via-blue-950/95 to-slate-900/95"} backdrop-blur-md`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -159,7 +193,7 @@ export function VictoryScreen({
             }}
           />
 
-          {/* Falling snowflakes decoration */}
+          {/* Falling snowflakes/embers decoration */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             {snowflakes.map((flake) => (
               <motion.span
@@ -167,12 +201,12 @@ export function VictoryScreen({
                 className="absolute text-2xl"
                 style={{ left: `${flake.left}%` }}
                 initial={{
-                  y: -50,
+                  y: hellMode ? "100vh" : -50,
                   opacity: 0.6,
                   rotate: 0,
                 }}
                 animate={{
-                  y: "100vh",
+                  y: hellMode ? -50 : "100vh",
                   rotate: 360,
                 }}
                 transition={{
@@ -182,7 +216,7 @@ export function VictoryScreen({
                   ease: "linear",
                 }}
               >
-                ❄️
+                {hellMode ? "🔥" : "❄️"}
               </motion.span>
             ))}
           </div>
@@ -267,7 +301,7 @@ export function VictoryScreen({
               >
                 {result.item.name}
               </h2>
-              <p className="text-amber-200/70 text-lg">{result.item.description}</p>
+              <p className={`${hellMode ? "text-red-300/70" : "text-amber-200/70"} text-lg`}>{result.item.description}</p>
             </div>
 {/*
              Rarity badge
@@ -296,12 +330,14 @@ export function VictoryScreen({
                   stopLoop();
                   onClose();
                 }}
-                className={hasMoreSpins
-                  ? "bg-gradient-to-r from-red-600 via-red-500 to-green-600 hover:from-red-500 hover:via-amber-500 hover:to-green-500 text-white font-bold shadow-lg"
-                  : "bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold shadow-lg"
+                className={hellMode
+                  ? "bg-gradient-to-r from-red-700 via-red-600 to-orange-600 hover:from-red-600 hover:via-orange-500 hover:to-red-600 text-white font-bold shadow-lg"
+                  : hasMoreSpins
+                    ? "bg-gradient-to-r from-red-600 via-red-500 to-green-600 hover:from-red-500 hover:via-amber-500 hover:to-green-500 text-white font-bold shadow-lg"
+                    : "bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold shadow-lg"
                 }
               >
-                {hasMoreSpins ? <>Отлично! 👍</> : "🎄 ЗАВЕРШИТЬ 🎄"}
+                {hellMode ? <>Принять судьбу... 💀</> : hasMoreSpins ? <>Отлично! 👍</> : "🎄 ЗАВЕРШИТЬ 🎄"}
               </Button>
             </motion.div>
           </motion.div>
@@ -312,7 +348,9 @@ export function VictoryScreen({
             <motion.div
               className="absolute inset-0 pointer-events-none"
               style={{
-                background: `radial-gradient(circle at center, ${config.glowColor}20 0%, transparent 70%)`,
+                background: hellMode
+                  ? `radial-gradient(circle at center, rgba(239, 68, 68, 0.2) 0%, transparent 70%)`
+                  : `radial-gradient(circle at center, ${config.glowColor}20 0%, transparent 70%)`,
               }}
               animate={{
                 opacity: [0.5, 1, 0.5],
@@ -331,28 +369,28 @@ export function VictoryScreen({
             animate={{ rotate: [0, 10, -10, 0] }}
             transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
           >
-            🎄
+            {hellMode ? "🔥" : "🎄"}
           </motion.div>
           <motion.div
             className="absolute top-8 right-8 text-4xl"
             animate={{ rotate: [0, -10, 10, 0] }}
             transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
           >
-            🎄
+            {hellMode ? "🔥" : "🎄"}
           </motion.div>
           <motion.div
             className="absolute bottom-8 left-8 text-3xl"
             animate={{ y: [0, -5, 0] }}
             transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY }}
           >
-            🎁
+            {hellMode ? "💀" : "🎁"}
           </motion.div>
           <motion.div
             className="absolute bottom-8 right-8 text-3xl"
             animate={{ y: [0, -5, 0] }}
             transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY, delay: 0.5 }}
           >
-            🎁
+            {hellMode ? "💀" : "🎁"}
           </motion.div>
         </motion.div>
       )}

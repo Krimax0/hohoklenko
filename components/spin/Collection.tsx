@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 interface CollectionProps {
   inventory: SpinResult[];
   playerNickname: string;
+  hellMode?: boolean;
 }
 
 const RARITY_ORDER: Rarity[] = [
@@ -106,7 +107,7 @@ function LockedItemCard({ item, chance }: { item: SpinItem; chance: number }) {
   );
 }
 
-export function Collection({ inventory, playerNickname }: CollectionProps) {
+export function Collection({ inventory, playerNickname, hellMode = false }: CollectionProps) {
   const [selectedRarity, setSelectedRarity] = useState<Rarity | "all">("all");
 
   // Получаем шансы для игрока
@@ -116,8 +117,8 @@ export function Collection({ inventory, playerNickname }: CollectionProps) {
     return acc;
   }, {} as Record<Rarity, number>);
 
-  // Получаем предметы текущего игрока
-  const playerItems = getPlayerItems(playerNickname);
+  // Получаем предметы текущего игрока (адские если hellMode активен)
+  const playerItems = getPlayerItems(playerNickname, hellMode);
 
   // Создаем Set из ID выпавших предметов
   const unlockedItemIds = new Set(inventory.map((result) => result.item.id));

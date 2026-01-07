@@ -67,6 +67,19 @@ const RARITY_SOUNDS: Record<Rarity, RaritySoundConfig> = {
       volume: 0.15,
     },
   },
+  divine: {
+    baseVolume: 0.5,
+    layers: [
+      { src: "/sounds/legendary-loot.wav", volume: 0.7, delay: 0 },
+      { src: "/sounds/game-reward.wav", volume: 0.4, delay: 100 },
+      { src: "/sounds/level-up.wav", volume: 0.35, delay: 200 },
+      { src: "/sounds/level-up.wav", volume: 0.3, delay: 400 },
+    ],
+    loop: {
+      src: "/sounds/electric-zap-loop.wav",
+      volume: 0.2,
+    },
+  },
 };
 
 export function useRewardSound() {

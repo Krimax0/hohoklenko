@@ -23,7 +23,8 @@ export interface PlayerInfo {
   nickname: string;
   avatar: string;
   chances: RarityChances;
-  maxSpins: number; // Максимальное количество круток (0 = бесконечно)
+  maxSpins: number; // Максимальное количество круток (0 = бесконечно, отрицательное = может уходить в минус)
+  baseMaxSpins: number; // Базовое количество круток (30 для обоих)
 }
 
 // ========================================
@@ -34,7 +35,8 @@ export const PLAYERS: Record<string, PlayerInfo> = {
     id: "klenko",
     nickname: "KLENKO",
     avatar: "🎅",
-    maxSpins: 0, // Бесконечные крутки
+    maxSpins: 30, // Может уходить в минус (тролль механика)
+    baseMaxSpins: 30,
     chances: {
       // KLENKO - "невезучий" персонаж, больше угля
       common: 39.5,   // 39.5% - много угля
@@ -50,7 +52,8 @@ export const PLAYERS: Record<string, PlayerInfo> = {
     id: "hohoyks",
     nickname: "HOHOYKS",
     avatar: "🎄",
-    maxSpins: 0, // Бесконечные крутки
+    maxSpins: 30, // После секретного предмета станет 0 (бесконечно)
+    baseMaxSpins: 30,
     chances: {
       // HOHOYKS - более удачливый
       common: 24.5,   // 24.5% - меньше угля
@@ -99,8 +102,14 @@ export const isCollectionComplete = (collectedItemIds: string[], nickname: strin
 /**
  * Выбирает случайную редкость на основе шансов игрока
  * Божественная редкость доступна только когда собрана вся коллекция
+ * @param lowRaritiesRemoved - для HOHOYKS после 40 круток убираются common и uncommon
  */
-const selectRandomRarity = (chances: RarityChances, collectedItemIds: string[] = [], nickname: string): Rarity => {
+const selectRandomRarity = (
+  chances: RarityChances,
+  collectedItemIds: string[] = [],
+  nickname: string,
+  lowRaritiesRemoved: boolean = false
+): Rarity => {
   const random = Math.random() * 100;
   let cumulative = 0;
 
@@ -109,27 +118,48 @@ const selectRandomRarity = (chances: RarityChances, collectedItemIds: string[] =
   // Проверяем, собрана ли коллекция игрока
   const collectionComplete = isCollectionComplete(collectedItemIds, nickname);
 
+  // Для HOHOYKS после 40 круток пересчитываем шансы без common и uncommon
+  let adjustedChances = { ...chances };
+  if (lowRaritiesRemoved && nickname.toUpperCase() === "HOHOYKS") {
+    const removedChance = chances.common + chances.uncommon;
+    const remainingRarities = ["rare", "epic", "legendary", "mythic", "divine"];
+    const totalRemaining = remainingRarities.reduce((sum, r) => sum + chances[r], 0);
+
+    // Перераспределяем шансы пропорционально
+    adjustedChances = { ...chances };
+    remainingRarities.forEach(rarity => {
+      adjustedChances[rarity] = (chances[rarity] / totalRemaining) * (100);
+    });
+    adjustedChances.common = 0;
+    adjustedChances.uncommon = 0;
+  }
+
   for (const rarity of rarities) {
     // Пропускаем божественную редкость если коллекция не собрана
     if (rarity === "divine" && !collectionComplete) {
       continue;
     }
 
-    cumulative += chances[rarity];
+    // Пропускаем низкие редкости если они удалены
+    if (lowRaritiesRemoved && (rarity === "common" || rarity === "uncommon")) {
+      continue;
+    }
+
+    cumulative += adjustedChances[rarity];
     if (random < cumulative) {
       return rarity;
     }
   }
 
-  // Fallback на случай погрешностей округления
-  return "common";
+  // Fallback
+  return lowRaritiesRemoved ? "rare" : "common";
 };
 
 /**
  * Выбирает случайный предмет из пула игрока по редкости
  */
-const selectRandomItem = (rarity: Rarity, nickname: string): SpinItem => {
-  const items = getItemsByRarity(rarity, nickname);
+const selectRandomItem = (rarity: Rarity, nickname: string, hellMode: boolean = false): SpinItem => {
+  const items = getItemsByRarity(rarity, nickname, hellMode);
 
   // Выбираем случайный предмет из доступных для игрока
   return items[Math.floor(Math.random() * items.length)];
@@ -138,40 +168,64 @@ const selectRandomItem = (rarity: Rarity, nickname: string): SpinItem => {
 /**
  * Генерирует список предметов для визуального отображения на барабане
  * с победным предметом на нужной позиции
+ * @param lowRaritiesRemoved - для HOHOYKS после 40 круток убираются common и uncommon
+ * @param hellMode - адский режим для KLENKO
  */
 const generateSpinItems = (
   winningItem: SpinItem,
   winningPosition: number,
   nickname: string,
-  totalItems: number = 50
+  totalItems: number = 50,
+  lowRaritiesRemoved: boolean = false,
+  hellMode: boolean = false
 ): SpinItem[] => {
   const items: SpinItem[] = [];
-  const playerItems = getPlayerItems(nickname).filter(item => item.rarity !== "divine");
+  const playerItems = getPlayerItems(nickname, hellMode).filter(item => item.rarity !== "divine");
+
+  // Для HOHOYKS после 40 круток убираем низкие редкости
+  const availableItems = lowRaritiesRemoved && nickname.toUpperCase() === "HOHOYKS"
+    ? playerItems.filter(item => item.rarity !== "common" && item.rarity !== "uncommon")
+    : playerItems;
 
   for (let i = 0; i < totalItems; i++) {
     if (i === winningPosition) {
       items.push(winningItem);
     } else {
-      // Заполняем случайными предметами из пула игрока (взвешено в сторону common/uncommon для фона)
+      // Заполняем случайными предметами из пула игрока
       const rand = Math.random();
       let pool: SpinItem[];
-      if (rand < 0.5) {
-        pool = playerItems.filter(item => item.rarity === "common");
-      } else if (rand < 0.75) {
-        pool = playerItems.filter(item => item.rarity === "uncommon");
-      } else if (rand < 0.9) {
-        pool = playerItems.filter(item => item.rarity === "rare");
-      } else if (rand < 0.96) {
-        pool = playerItems.filter(item => item.rarity === "epic");
-      } else if (rand < 0.99) {
-        pool = playerItems.filter(item => item.rarity === "legendary");
+
+      if (lowRaritiesRemoved && nickname.toUpperCase() === "HOHOYKS") {
+        // После 40 круток только редкие и выше
+        if (rand < 0.4) {
+          pool = availableItems.filter(item => item.rarity === "rare");
+        } else if (rand < 0.7) {
+          pool = availableItems.filter(item => item.rarity === "epic");
+        } else if (rand < 0.9) {
+          pool = availableItems.filter(item => item.rarity === "legendary");
+        } else {
+          pool = availableItems.filter(item => item.rarity === "mythic");
+        }
       } else {
-        pool = playerItems.filter(item => item.rarity === "mythic");
+        // Обычное распределение
+        if (rand < 0.5) {
+          pool = availableItems.filter(item => item.rarity === "common");
+        } else if (rand < 0.75) {
+          pool = availableItems.filter(item => item.rarity === "uncommon");
+        } else if (rand < 0.9) {
+          pool = availableItems.filter(item => item.rarity === "rare");
+        } else if (rand < 0.96) {
+          pool = availableItems.filter(item => item.rarity === "epic");
+        } else if (rand < 0.99) {
+          pool = availableItems.filter(item => item.rarity === "legendary");
+        } else {
+          pool = availableItems.filter(item => item.rarity === "mythic");
+        }
       }
 
-      // Если пул пустой (например, нет мифических у игрока), берем любой предмет
+      // Если пул пустой, берем любой доступный предмет
       if (pool.length === 0) {
-        pool = playerItems;
+        pool = availableItems;
       }
 
       items.push(pool[Math.floor(Math.random() * pool.length)]);
@@ -184,16 +238,33 @@ const generateSpinItems = (
 /**
  * Генерирует случайный спин для игрока на основе его индивидуальных шансов
  * Принимает массив ID собранных предметов для проверки доступности божественной редкости
+ * @param lowRaritiesRemoved - для HOHOYKS после 40 круток убираются common и uncommon
+ * @param hellMode - адский режим для KLENKO
+ * @param guaranteedDivine - гарантированный божественный предмет (на 200-й крутке)
  */
-export const generateRandomSpin = (nickname: string, collectedItemIds: string[] = []): ScriptedSpin | null => {
+export const generateRandomSpin = (
+  nickname: string,
+  collectedItemIds: string[] = [],
+  lowRaritiesRemoved: boolean = false,
+  hellMode: boolean = false,
+  guaranteedDivine: boolean = false
+): ScriptedSpin | null => {
   const player = getPlayerInfo(nickname);
   if (!player) return null;
 
-  // Выбираем случайную редкость на основе шансов игрока
-  const winningRarity = selectRandomRarity(player.chances, collectedItemIds, nickname);
+  let winningRarity: Rarity;
+  let winningItem: SpinItem;
 
-  // Выбираем случайный предмет этой редкости
-  const winningItem = selectRandomItem(winningRarity, nickname);
+  if (guaranteedDivine) {
+    // Гарантированный божественный предмет на 200-й крутке
+    winningRarity = "divine";
+    winningItem = selectRandomItem(winningRarity, nickname, hellMode);
+  } else {
+    // Выбираем случайную редкость на основе шансов игрока
+    winningRarity = selectRandomRarity(player.chances, collectedItemIds, nickname, lowRaritiesRemoved);
+    // Выбираем случайный предмет этой редкости
+    winningItem = selectRandomItem(winningRarity, nickname, hellMode);
+  }
 
   // Определяем параметры анимации в зависимости от редкости
   const isEpicDrop = winningRarity === "legendary" || winningRarity === "mythic" || winningRarity === "divine";
@@ -214,7 +285,7 @@ export const generateRandomSpin = (nickname: string, collectedItemIds: string[] 
   };
 
   return {
-    items: generateSpinItems(winningItem, winningPosition, nickname, totalItems),
+    items: generateSpinItems(winningItem, winningPosition, nickname, totalItems, lowRaritiesRemoved, hellMode),
     winningIndex: winningPosition,
     duration: durationMap[winningRarity],
     easing: "easeOut",

@@ -14,12 +14,13 @@ interface SpinWheelProps {
   isSpinning: boolean;
   onSpinComplete: (result: SpinResult) => void;
   fastMode?: boolean; // Ускоренный режим для авто-крутки
+  hellMode?: boolean; // Адский режим для KLENKO
 }
 
 const ITEM_WIDTH = 124; // Width of each item (112px w-28) + gap (12px gap-3)
 const VISIBLE_ITEMS = 7; // Number of visible items
 
-export function SpinWheel({ spin, isSpinning, onSpinComplete, fastMode = false }: SpinWheelProps) {
+export function SpinWheel({ spin, isSpinning, onSpinComplete, fastMode = false, hellMode = false }: SpinWheelProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const stripRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
@@ -177,30 +178,38 @@ export function SpinWheel({ spin, isSpinning, onSpinComplete, fastMode = false }
 
   return (
     <div className="relative w-full max-w-4xl mx-auto">
-      {/* Gradient overlays for fade effect */}
-      <div className="absolute left-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-r from-gray-900 to-transparent pointer-events-none" />
-      <div className="absolute right-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-l from-gray-900 to-transparent pointer-events-none" />
+      {/* Gradient overlays for fade effect - только для обычного режима */}
+      {!hellMode && (
+        <>
+          <div className="absolute left-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-r from-gray-900 to-transparent pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-l from-gray-900 to-transparent pointer-events-none" />
+        </>
+      )}
 
       {/* Center indicator */}
       <div className="absolute left-1/2 top-0 bottom-0 w-1 -ml-0.5 z-20 pointer-events-none">
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-yellow-400" />
+        <div className={`absolute -top-4 left-1/2 -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent ${hellMode ? "border-t-red-500" : "border-t-yellow-400"}`} />
         <div
           className="h-full w-1"
           style={{
-            background: `linear-gradient(to bottom, ${config.color}, ${config.color}80, ${config.color})`,
-            boxShadow: `0 0 20px ${config.glowColor}`,
+            background: hellMode
+              ? `linear-gradient(to bottom, #ef4444, #ef444480, #ef4444)`
+              : `linear-gradient(to bottom, ${config.color}, ${config.color}80, ${config.color})`,
+            boxShadow: hellMode ? `0 0 20px #ef4444` : `0 0 20px ${config.glowColor}`,
           }}
         />
-        <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-b-8 border-transparent border-b-yellow-400" />
+        <div className={`absolute -bottom-4 left-1/2 -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-b-8 border-transparent ${hellMode ? "border-b-red-500" : "border-b-yellow-400"}`} />
       </div>
 
       {/* Main wheel container */}
       <div
         ref={containerRef}
-        className="relative overflow-hidden rounded-2xl bg-black/50 backdrop-blur-sm border border-white/10 p-4"
+        className={`relative overflow-hidden rounded-2xl ${hellMode ? "bg-red-950/50" : "bg-black/50"} backdrop-blur-sm border ${hellMode ? "border-red-500/30" : "border-white/10"} p-4`}
         style={{
           boxShadow: isSpinning
-            ? `inset 0 0 50px ${config.glowColor}40`
+            ? hellMode
+              ? `inset 0 0 50px rgba(239, 68, 68, 0.4)`
+              : `inset 0 0 50px ${config.glowColor}40`
             : "none",
         }}
       >

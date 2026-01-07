@@ -13,6 +13,7 @@ interface InventoryProps {
   isOpen: boolean;
   onClose: () => void;
   playerNickname?: string;
+  hellMode?: boolean;
 }
 
 type TabType = "inventory" | "collection";
@@ -27,7 +28,7 @@ const RARITY_ORDER: Rarity[] = [
   "common",
 ];
 
-export function Inventory({ items, isOpen, onClose, playerNickname = "KLENKO" }: InventoryProps) {
+export function Inventory({ items, isOpen, onClose, playerNickname = "KLENKO", hellMode = false }: InventoryProps) {
   const [selectedRarity, setSelectedRarity] = useState<Rarity | "all">("all");
   const [activeTab, setActiveTab] = useState<TabType>("inventory");
 
@@ -51,6 +52,21 @@ export function Inventory({ items, isOpen, onClose, playerNickname = "KLENKO" }:
     count: groupedItems[rarity]?.length || 0,
     config: RARITY_CONFIG[rarity],
   }));
+
+  // Адские названия редкостей
+  const getHellRarityName = (rarity: Rarity): string => {
+    if (!hellMode) return RARITY_CONFIG[rarity].name;
+    const hellNames: Record<Rarity, string> = {
+      common: "Пепел",
+      uncommon: "Тлен",
+      rare: "Проклятие",
+      epic: "Кошмар",
+      legendary: "Ужас",
+      mythic: "Погибель",
+      divine: "Адский",
+    };
+    return hellNames[rarity];
+  };
 
   return (
     <AnimatePresence>
@@ -78,11 +94,13 @@ export function Inventory({ items, isOpen, onClose, playerNickname = "KLENKO" }:
             <div className="p-6 border-b border-white/10">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-3xl font-bold text-white flex items-center gap-3">
-                  <span>{activeTab === "inventory" ? "🎒" : "📚"}</span>
-                  {activeTab === "inventory" ? "Инвентарь" : "Коллекция"}
+                  <span>{hellMode ? (activeTab === "inventory" ? "👻" : "💀") : (activeTab === "inventory" ? "🎒" : "📚")}</span>
+                  {activeTab === "inventory"
+                    ? (hellMode ? "Проклятый инвентарь" : "Инвентарь")
+                    : (hellMode ? "Книга проклятий" : "Коллекция")}
                   {activeTab === "inventory" && (
                     <span className="text-lg text-gray-400">
-                      ({items.length} предметов)
+                      ({items.length} {hellMode ? "проклятий" : "предметов"})
                     </span>
                   )}
                 </h2>
@@ -108,7 +126,7 @@ export function Inventory({ items, isOpen, onClose, playerNickname = "KLENKO" }:
                   }`}
                   onClick={() => setActiveTab("inventory")}
                 >
-                  🎒 Инвентарь
+                  {hellMode ? "👻 Проклятия" : "🎒 Инвентарь"}
                 </Button>
                 <Button
                   variant="ghost"
@@ -120,7 +138,7 @@ export function Inventory({ items, isOpen, onClose, playerNickname = "KLENKO" }:
                   }`}
                   onClick={() => setActiveTab("collection")}
                 >
-                  📚 Коллекция
+                  {hellMode ? "💀 Книга тьмы" : "📚 Коллекция"}
                 </Button>
               </div>
 
@@ -160,7 +178,7 @@ export function Inventory({ items, isOpen, onClose, playerNickname = "KLENKO" }:
                         }}
                         onClick={() => setSelectedRarity(rarity)}
                       >
-                        {config.name} ({count})
+                        {getHellRarityName(rarity)} ({count})
                       </Button>
                     ) : null
                   )}
@@ -174,8 +192,8 @@ export function Inventory({ items, isOpen, onClose, playerNickname = "KLENKO" }:
                 // Инвентарь
                 filteredItems.length === 0 ? (
                   <div className="text-center text-gray-500 py-12">
-                    <span className="text-6xl block mb-4">📦</span>
-                    <p>Пока пусто. Крутите, чтобы получить предметы!</p>
+                    <span className="text-6xl block mb-4">{hellMode ? "💀" : "📦"}</span>
+                    <p>{hellMode ? "Пустота... Крутите, чтобы собрать проклятия!" : "Пока пусто. Крутите, чтобы получить предметы!"}</p>
                   </div>
                 ) : (
                   <motion.div
@@ -203,7 +221,7 @@ export function Inventory({ items, isOpen, onClose, playerNickname = "KLENKO" }:
                 )
               ) : (
                 // Коллекция
-                <Collection inventory={items} playerNickname={playerNickname} />
+                <Collection inventory={items} playerNickname={playerNickname} hellMode={hellMode} />
               )}
             </div>
 
@@ -217,7 +235,7 @@ export function Inventory({ items, isOpen, onClose, playerNickname = "KLENKO" }:
                     style={{ color: config.color }}
                   >
                     <span className="font-bold">{count}</span>
-                    <span className="text-gray-400">{config.name}</span>
+                    <span className="text-gray-400">{getHellRarityName(rarity)}</span>
                   </div>
                 ))}
               </div>

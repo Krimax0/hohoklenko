@@ -19,7 +19,7 @@ interface WelcomeScreenProps {
 }
 
 export function WelcomeScreen({ playerName, spinsCount, onContinue }: WelcomeScreenProps) {
-  const [phase, setPhase] = useState<"greeting" | "spins" | "question" | "ready">("greeting");
+  const [phase, setPhase] = useState<"greeting" | "spins" | "goal" | "question" | "ready">("greeting");
   const [mounted, setMounted] = useState(false);
 
   // Отложенный рендеринг тяжёлых компонентов
@@ -29,17 +29,20 @@ export function WelcomeScreen({ playerName, spinsCount, onContinue }: WelcomeScr
   }, []);
 
   useEffect(() => {
-    // Phase 1: Greeting
-    const timer1 = setTimeout(() => setPhase("spins"), 1500);
-    // Phase 2: Spins count
-    const timer2 = setTimeout(() => setPhase("question"), 3500);
-    // Phase 3: Question
-    const timer3 = setTimeout(() => setPhase("ready"), 5500);
+    // Phase 1: Greeting (5 сек)
+    const timer1 = setTimeout(() => setPhase("spins"), 5000);
+    // Phase 2: Spins count (6 сек)
+    const timer2 = setTimeout(() => setPhase("goal"), 11000);
+    // Phase 3: Goal (6 сек)
+    const timer3 = setTimeout(() => setPhase("question"), 17000);
+    // Phase 4: Question (5 сек)
+    const timer4 = setTimeout(() => setPhase("ready"), 22000);
 
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
       clearTimeout(timer3);
+      clearTimeout(timer4);
     };
   }, []);
 
@@ -62,6 +65,13 @@ export function WelcomeScreen({ playerName, spinsCount, onContinue }: WelcomeScr
         ".spins-number",
         { scale: 0, rotation: -180 },
         { scale: 1, rotation: 0, duration: 1, delay: 0.3, ease: "elastic.out(1, 0.5)" }
+      );
+    }
+    if (phase === "goal") {
+      gsap.fromTo(
+        ".goal-text",
+        { y: 50, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }
       );
     }
     if (phase === "question") {
@@ -191,7 +201,60 @@ export function WelcomeScreen({ playerName, spinsCount, onContinue }: WelcomeScr
           )}
         </AnimatePresence>
 
-        {/* Phase 3: Question */}
+        {/* Phase 3: Goal */}
+        <AnimatePresence>
+          {phase === "goal" && (
+            <motion.div
+              className="goal-text"
+              exit={{ opacity: 0, y: -50, transition: { duration: 0.3 } }}
+            >
+              <motion.div
+                className="text-7xl md:text-9xl mb-6"
+                animate={{
+                  scale: [1, 1.1, 1],
+                  rotate: [0, 5, -5, 0],
+                }}
+                transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
+              >
+                🎯
+              </motion.div>
+              <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+                ВАША ЦЕЛЬ:
+              </h2>
+              <motion.div
+                className="relative inline-block px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-600/30 via-amber-500/30 to-purple-600/30 border-2 border-amber-400/50"
+                animate={{
+                  boxShadow: [
+                    "0 0 20px rgba(251, 191, 36, 0.3)",
+                    "0 0 40px rgba(251, 191, 36, 0.6)",
+                    "0 0 20px rgba(251, 191, 36, 0.3)",
+                  ],
+                }}
+                transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY }}
+              >
+                <p className="text-2xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-purple-400 to-amber-300">
+                  ВЫБИТЬ БОЖЕСТВЕННЫЙ ПРЕДМЕТ
+                </p>
+              </motion.div>
+              <motion.p
+                className="text-xl md:text-2xl text-amber-200/80 mt-6"
+                animate={{ opacity: [0.6, 1, 0.6] }}
+                transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
+              >
+                за {spinsCount} круток и получить подарок! 🎁
+              </motion.p>
+              <motion.p
+                className="text-lg md:text-xl text-red-400/90 mt-4 font-semibold"
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY }}
+              >
+                ⚠️ Не у всех получается...
+              </motion.p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Phase 4: Question */}
         <AnimatePresence>
           {(phase === "question" || phase === "ready") && (
             <motion.div
