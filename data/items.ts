@@ -55,11 +55,11 @@ export const KLENKO_ITEMS: SpinItem[] = [
   createItem("klenko_blood_crystal", "Кровавый Кристалл", "Лизни его. Давай, лизни.", "epic", "💎", "/images/blood_crystal.png"),
 
   // Legendary (2 предмета)
-  createItem("klenko_misa_new_year", "Новогодняя Миса", "Уже открыла все подарки!", "legendary", "🎅", "/images/misa_new_year.png"),
+  createItem("klenko_misa_new_year", "Новогодняя Миса", "Твои подарки тоже открыла. Упс.", "legendary", "🎅", "/images/misa_new_year.png"),
   createItem("klenko_misa_pixel", "Пиксельная Миса", "8 бит чистого счастья!", "legendary", "🎁", "/images/misa_pixel.png"),
 
   // Mythic (1 предмет)
-  createItem("klenko_misa_winter_devil", "Миса Зимний Демон", "Даже снеговики её боятся!", "mythic", "🎒", "/images/misa_winter_devil.png"),
+  createItem("klenko_misa_winter_devil", "Миса Зимний Демон", "Съела все морковки снеговиков в районе", "mythic", "🎒", "/images/misa_winter_devil.png"),
 ];
 
 // Divine для Klenkozarashi
@@ -108,20 +108,20 @@ export const KLENKO_HELLISH_DIVINE: SpinItem[] = [
 export const HOHOYKS_ITEMS: SpinItem[] = [
   // Common (3 предмета)
   createItem("hohoyks_snowflake", "Снежинка", "Растаяла пока ты читал", "common", "❄️"),
-  createItem("hohoyks_candy_cane", "Леденец", "Язык прилип? Говорили же!", "common", "🍬"),
+  createItem("hohoyks_candy_cane", "Леденец", "Застрял в бороде Деда Мороза", "common", "🍬"),
   createItem("hohoyks_stocking", "Рождественский носок", "Пахнет мандаринами!", "common", "🧦"),
 
   // Uncommon (4 предмета)
   createItem("hohoyks_snowman_hat", "Шляпа Снеговика", "Предыдущий владелец растаял", "uncommon", "🎩"),
   createItem("hohoyks_jingle_bells", "Бубенцы", "Соседи уже ненавидят тебя!", "uncommon", "🎶"),
   createItem("hohoyks_christmas_lights", "Гирлянда", "Одна лампочка не горит. Найди.", "uncommon", "✨"),
-  createItem("hohoyks_gingerbread", "Пряничный человечек", "Убежал из духовки!", "uncommon", "🍪"),
+  createItem("hohoyks_gingerbread", "Пряничный человечек", "Кричит 'НЕ МЕНЯ!' при виде молока", "uncommon", "🍪"),
 
   // Rare (4 предмета)
   createItem("hohoyks_oksik_road", "Оксик на Машинке", "Бип-бип, с дороги!", "rare", "🦌", "/images/oksik_road.png"),
   createItem("hohoyks_oksik_crochet", "Оксик-Рукодельник", "Свяжет игрушку за 5 минут!", "rare", "🧥", "/images/oksik_crochet.png"),
-  createItem("hohoyks_oksik_dance", "Танцующий Оксик", "Ноги сами идут в пляс!", "rare", "🎵", "/images/oksik_dance.png"),
-  createItem("hohoyks_oksik_pixel", "Пиксельный Оксик", "Квадратный, но милый!", "rare", "💫", "/images/oksik_pixel.png"),
+  createItem("hohoyks_oksik_dance", "Танцующий Оксик", "Танцует даже когда музыки нет. Милоооо.", "rare", "🎵", "/images/oksik_dance.png"),
+  createItem("hohoyks_oksik_pixel", "Пиксельный Оксик", "Застрял в 2007 году. Ему там нравится.", "rare", "💫", "/images/oksik_pixel.png"),
 
   // Epic (2 предмета)
   createItem("hohoyks_golden_bell", "Золотой Колокол", "Дин-дон, ты богат!", "epic", "🔔"),
@@ -132,7 +132,7 @@ export const HOHOYKS_ITEMS: SpinItem[] = [
   createItem("hohoyks_golden_tree", "Золотая Ёлка", "Соседи ослепли от зависти!", "legendary", "🌟"),
 
   // Mythic (1 предмет)
-  createItem("hohoyks_oksik_new_year", "Новогодний Оксик", "Главный по мандаринкам!", "mythic", "💎", "/images/oksik_new_year.png"),
+  createItem("hohoyks_oksik_new_year", "Новогодний Оксик", "Съел 47 мандаринов. Не останавливается.", "mythic", "💎", "/images/oksik_new_year.png"),
 ];
 
 // SECRET LEGENDARY для HOHOYKS - Крутка Бесконечности
