@@ -1,4 +1,4 @@
-export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary" | "mythic";
+export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary" | "mythic" | "divine";
 
 export interface SpinItem {
   id: string;
@@ -124,5 +124,17 @@ export const RARITY_CONFIG: Record<Rarity, {
     confettiCount: 500,
     screenShake: true,
     specialEffect: "christmas_miracle",
+  },
+  divine: {
+    name: "Божественный",
+    color: "#ffffff",
+    glowColor: "rgba(255, 255, 255, 1.0)",
+    bgGradient: "linear-gradient(135deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3)",
+    borderColor: "#ffffff",
+    particleColor: "#ffffff",
+    soundIntensity: 1.0,
+    confettiCount: 1000,
+    screenShake: true,
+    specialEffect: "divine_blessing",
   },
 };

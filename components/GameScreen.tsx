@@ -82,14 +82,14 @@ export function GameScreen() {
   };
 
   // Авто-крутка: автоматически закрываем VictoryScreen и начинаем следующий спин
-  // НО останавливаемся при выпадении legendary или mythic!
+  // НО останавливаемся при выпадении legendary, mythic или divine!
   useEffect(() => {
     if (autoMode && showVictoryScreen && hasSpinsLeft) {
       // Проверяем редкость последнего выпавшего предмета
-      const isEpicDrop = lastResult?.item.rarity === "legendary" || lastResult?.item.rarity === "mythic";
-      
+      const isEpicDrop = lastResult?.item.rarity === "legendary" || lastResult?.item.rarity === "mythic" || lastResult?.item.rarity === "divine";
+
       if (isEpicDrop) {
-        // Останавливаем автокрутку при легендарном/мифическом дропе
+        // Останавливаем автокрутку при легендарном/мифическом/божественном дропе
         setAutoMode(false);
         // Не закрываем экран награды автоматически!
         return;
@@ -487,6 +487,7 @@ export function GameScreen() {
         items={currentPlayer.inventory}
         isOpen={showInventory}
         onClose={() => setShowInventory(false)}
+        playerNickname={currentPlayer.nickname}
       />
     </div>
   );

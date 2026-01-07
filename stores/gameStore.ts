@@ -48,7 +48,7 @@ export const useGameStore = create<GameStore>()(
         const playerInfo = getPlayerInfo(nickname);
         if (playerInfo) {
           // Генерируем первый спин сразу при логине (теперь рандомный)
-          const firstSpin = generateRandomSpin(nickname);
+          const firstSpin = generateRandomSpin(nickname, []);
           set({
             isAuthenticated: true,
             currentPlayer: {
@@ -88,8 +88,9 @@ export const useGameStore = create<GameStore>()(
         // Проверяем, есть ли ещё крутки
         if (!hasSpinsRemaining(currentPlayer.nickname, currentPlayer.currentSpinIndex)) return;
 
-        // Генерируем новый рандомный спин
-        const newSpin = generateRandomSpin(currentPlayer.nickname);
+        // Генерируем новый рандомный спин с учетом собранных предметов
+        const collectedItemIds = currentPlayer.inventory.map(r => r.item.id);
+        const newSpin = generateRandomSpin(currentPlayer.nickname, collectedItemIds);
         set({ currentSpin: newSpin });
       },
 
@@ -110,15 +111,17 @@ export const useGameStore = create<GameStore>()(
         if (!currentPlayer) return;
 
         const newSpinIndex = currentPlayer.currentSpinIndex + 1;
+        const updatedInventory = [...currentPlayer.inventory, result];
         const updatedPlayer: PlayerState = {
           ...currentPlayer,
           currentSpinIndex: newSpinIndex,
-          inventory: [...currentPlayer.inventory, result],
+          inventory: updatedInventory,
         };
 
-        // Генерируем НОВЫЙ рандомный спин для следующей крутки
+        // Генерируем НОВЫЙ рандомный спин для следующей крутки с учетом НОВОЙ коллекции
+        const collectedItemIds = updatedInventory.map(r => r.item.id);
         const nextSpin = hasSpinsRemaining(currentPlayer.nickname, newSpinIndex)
-          ? generateRandomSpin(currentPlayer.nickname)
+          ? generateRandomSpin(currentPlayer.nickname, collectedItemIds)
           : null;
 
         set({
@@ -142,8 +145,8 @@ export const useGameStore = create<GameStore>()(
 
         const playerInfo = getPlayerInfo(currentPlayer.nickname);
         if (playerInfo) {
-          // Генерируем новый рандомный спин при сбросе
-          const firstSpin = generateRandomSpin(currentPlayer.nickname);
+          // Генерируем новый рандомный спин при сбросе (без собранных предметов)
+          const firstSpin = generateRandomSpin(currentPlayer.nickname, []);
           set({
             currentPlayer: {
               id: playerInfo.id,
@@ -177,8 +180,9 @@ export const useGameStore = create<GameStore>()(
       // При восстановлении состояния - генерируем новый рандомный спин
       onRehydrateStorage: () => (state) => {
         if (state?.currentPlayer) {
-          // Генерируем новый рандомный спин при восстановлении
-          const spin = generateRandomSpin(state.currentPlayer.nickname);
+          // Генерируем новый рандомный спин при восстановлении с учетом собранных предметов
+          const collectedItemIds = state.currentPlayer.inventory?.map(r => r.item.id) || [];
+          const spin = generateRandomSpin(state.currentPlayer.nickname, collectedItemIds);
           state.currentSpin = spin;
         }
       },

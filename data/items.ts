@@ -14,6 +14,7 @@ const createItem = (
     epic: { color: "#c084fc", glowColor: "rgba(192, 132, 252, 0.7)" },
     legendary: { color: "#fbbf24", glowColor: "rgba(251, 191, 36, 0.8)" },
     mythic: { color: "#f43f5e", glowColor: "rgba(244, 63, 94, 0.9)" },
+    divine: { color: "#ffffff", glowColor: "rgba(255, 255, 255, 1.0)" },
   };
 
   return {
@@ -27,96 +28,112 @@ const createItem = (
   };
 };
 
-// COMMON ITEMS - Уголь для непослушных!
-export const COMMON_ITEMS: SpinItem[] = [
-  createItem("coal_piece", "Кусочек Угля", "Для непослушных детей", "common", "⬛"),
-  createItem("coal_chunk", "Угольный Брикет", "Крупный и чёрный", "common", "🪨"),
-  createItem("coal_dust", "Угольная Пыль", "Пачкает руки", "common", "🖤"),
-  createItem("coal_small", "Мелкий Уголёк", "Совсем крошечный", "common", "◾"),
-  createItem("coal_shiny", "Блестящий Уголь", "Почти как алмаз... но нет", "common", "💎"),
-  createItem("coal_old", "Старый Уголь", "Из прошлого года", "common", "⚫"),
-  createItem("coal_warm", "Тёплый Уголь", "Ещё не остыл", "common", "🔥"),
-  createItem("coal_gift", "Уголь в Обёртке", "Подарок? Сюрприз!", "common", "🎁"),
+// ========================================
+// Пул предметов для KLENKO - "невезучий" персонаж
+// ========================================
+export const KLENKO_ITEMS: SpinItem[] = [
+  // Common (8 предметов) - много угля
+  createItem("klenko_coal_piece", "Кусочек Угля", "Для непослушных детей", "common", "⬛"),
+  createItem("klenko_coal_chunk", "Угольный Брикет", "Крупный и чёрный", "common", "🪨"),
+  createItem("klenko_coal_dust", "Угольная Пыль", "Пачкает руки", "common", "🖤"),
+  createItem("klenko_coal_small", "Мелкий Уголёк", "Совсем крошечный", "common", "◾"),
+  createItem("klenko_coal_shiny", "Блестящий Уголь", "Почти как алмаз... но нет", "common", "💎"),
+  createItem("klenko_coal_old", "Старый Уголь", "Из прошлого года", "common", "⚫"),
+  createItem("klenko_coal_warm", "Тёплый Уголь", "Ещё не остыл", "common", "🔥"),
+  createItem("klenko_coal_gift", "Уголь в Обёртке", "Подарок? Сюрприз!", "common", "🎁"),
+
+  // Uncommon (4 предмета)
+  createItem("klenko_christmas_ball", "Ёлочный Шар", "Сверкает огнями гирлянды", "uncommon", "🔴"),
+  createItem("klenko_gift_box", "Подарочная Коробка", "Что же внутри?", "uncommon", "🎁"),
+  createItem("klenko_wreath", "Рождественский Венок", "Украшен красными ягодами", "uncommon", "💚"),
+  createItem("klenko_star_cookie", "Звёздное Печенье", "Покрыто глазурью", "uncommon", "⭐"),
+
+  // Rare (3 предмета)
+  createItem("klenko_snow_globe", "Снежный Шар", "Внутри миниатюрная зима", "rare", "🔮"),
+  createItem("klenko_ice_skates", "Коньки", "Для катания по льду", "rare", "⛸️"),
+  createItem("klenko_nutcracker", "Щелкунчик", "Деревянный солдатик", "rare", "🪖"),
+
+  // Epic (2 предмета)
+  createItem("klenko_magic_sleigh", "Волшебные Сани", "Летят по небу!", "epic", "🛷"),
+  createItem("klenko_aurora_bottle", "Северное Сияние в Бутылке", "Переливается всеми цветами", "epic", "🌌"),
+
+  // Legendary (2 предмета)
+  createItem("klenko_santas_hat", "Шапка Деда Мороза", "Настоящая! Тёплая и волшебная", "legendary", "🎅"),
+  createItem("klenko_infinite_gift", "Бесконечный Подарок", "Каждый раз новый сюрприз", "legendary", "🎁"),
+
+  // Mythic (1 предмет)
+  createItem("klenko_santas_bag", "Мешок Деда Мороза", "Вмещает все подарки мира", "mythic", "🎒"),
 ];
 
-// UNCOMMON ITEMS - Хорошие подарки
-export const UNCOMMON_ITEMS: SpinItem[] = [
-  createItem("christmas_ball", "Ёлочный Шар", "Сверкает огнями гирлянды", "uncommon", "🔴"),
-  createItem("gift_box", "Подарочная Коробка", "Что же внутри?", "uncommon", "🎁"),
-  createItem("wreath", "Рождественский Венок", "Украшен красными ягодами", "uncommon", "💚"),
-  createItem("star_cookie", "Звёздное Печенье", "Покрыто глазурью", "uncommon", "⭐"),
-  createItem("snowman_hat", "Шляпа Снеговика", "Немного потрёпанная", "uncommon", "🎩"),
-  createItem("jingle_bells", "Бубенцы", "Дзинь-дзинь-дзинь!", "uncommon", "🎶"),
-  createItem("christmas_lights", "Гирлянда", "Мигает разными цветами", "uncommon", "✨"),
-  createItem("eggnog", "Гоголь-Моголь", "Праздничный напиток", "uncommon", "🥛"),
+// Divine для KLENKO
+export const KLENKO_DIVINE: SpinItem[] = [
+  createItem("klenko_minecraft_key", "🎁 Ключ Minecraft для KLENKO", "Особый подарок от создателя! Лицензия Minecraft Java Edition", "divine", "🔑"),
 ];
 
-// RARE ITEMS - Особенные подарки
-export const RARE_ITEMS: SpinItem[] = [
-  createItem("snow_globe", "Снежный Шар", "Внутри миниатюрная зима", "rare", "🔮"),
-  createItem("ice_skates", "Коньки", "Для катания по льду", "rare", "⛸️"),
-  createItem("nutcracker", "Щелкунчик", "Деревянный солдатик", "rare", "🪖"),
-  createItem("reindeer_plush", "Плюшевый Олень", "Мягкий и пушистый", "rare", "🦌"),
-  createItem("christmas_sweater", "Новогодний Свитер", "С оленями и ёлками", "rare", "🧥"),
-  createItem("music_box", "Музыкальная Шкатулка", "Играет 'Jingle Bells'", "rare", "🎵"),
-  createItem("crystal_star", "Хрустальная Звезда", "Для верхушки ёлки", "rare", "💫"),
+// ========================================
+// Пул предметов для HOHOYKS - "удачливый" персонаж
+// ========================================
+export const HOHOYKS_ITEMS: SpinItem[] = [
+  // Common (5 предметов) - меньше угля
+  createItem("hohoyks_snowflake", "Снежинка", "Уникальная и прекрасная", "common", "❄️"),
+  createItem("hohoyks_candy_cane", "Леденец", "Мятный и сладкий", "common", "🍬"),
+  createItem("hohoyks_mittens", "Варежки", "Тёплые и уютные", "common", "🧤"),
+  createItem("hohoyks_ornament", "Ёлочная игрушка", "Блестящая и яркая", "common", "🎀"),
+  createItem("hohoyks_stocking", "Рождественский носок", "Для подарков", "common", "🧦"),
+
+  // Uncommon (5 предметов)
+  createItem("hohoyks_snowman_hat", "Шляпа Снеговика", "Немного потрёпанная", "uncommon", "🎩"),
+  createItem("hohoyks_jingle_bells", "Бубенцы", "Дзинь-дзинь-дзинь!", "uncommon", "🎶"),
+  createItem("hohoyks_christmas_lights", "Гирлянда", "Мигает разными цветами", "uncommon", "✨"),
+  createItem("hohoyks_eggnog", "Гоголь-Моголь", "Праздничный напиток", "uncommon", "🥛"),
+  createItem("hohoyks_gingerbread", "Пряничный человечек", "Вкусный и ароматный", "uncommon", "🍪"),
+
+  // Rare (4 предмета)
+  createItem("hohoyks_reindeer_plush", "Плюшевый Олень", "Мягкий и пушистый", "rare", "🦌"),
+  createItem("hohoyks_christmas_sweater", "Новогодний Свитер", "С оленями и ёлками", "rare", "🧥"),
+  createItem("hohoyks_music_box", "Музыкальная Шкатулка", "Играет 'Jingle Bells'", "rare", "🎵"),
+  createItem("hohoyks_crystal_star", "Хрустальная Звезда", "Для верхушки ёлки", "rare", "💫"),
+
+  // Epic (3 предмета)
+  createItem("hohoyks_eternal_wreath", "Вечнозелёный Венок", "Никогда не увядает", "epic", "🌿"),
+  createItem("hohoyks_golden_bell", "Золотой Колокол", "Исполняет желания при звоне", "epic", "🔔"),
+  createItem("hohoyks_frost_wand", "Посох Мороза", "Создаёт снежинки", "epic", "🪄"),
+
+  // Legendary (2 предмета)
+  createItem("hohoyks_reindeer_antlers", "Рога Рудольфа", "Светятся в темноте!", "legendary", "✨"),
+  createItem("hohoyks_golden_tree", "Золотая Ёлка", "Сияет ярче солнца", "legendary", "🌟"),
+
+  // Mythic (1 предмет)
+  createItem("hohoyks_time_crystal", "Кристалл Времени", "Останавливает полночь навечно", "mythic", "💎"),
 ];
 
-// EPIC ITEMS - Волшебные подарки
-export const EPIC_ITEMS: SpinItem[] = [
-  createItem("magic_sleigh", "Волшебные Сани", "Летят по небу!", "epic", "🛷"),
-  createItem("aurora_bottle", "Северное Сияние в Бутылке", "Переливается всеми цветами", "epic", "🌌"),
-  createItem("eternal_wreath", "Вечнозелёный Венок", "Никогда не увядает", "epic", "🌿"),
-  createItem("golden_bell", "Золотой Колокол", "Исполняет желания при звоне", "epic", "🔔"),
-  createItem("frost_wand", "Посох Мороза", "Создаёт снежинки", "epic", "🪄"),
-  createItem("enchanted_ornament", "Зачарованный Шар", "Показывает будущий год", "epic", "🎄"),
+// Divine для HOHOYKS
+export const HOHOYKS_DIVINE: SpinItem[] = [
+  createItem("hohoyks_minecraft_key", "🎁 Ключ Minecraft для HOHOYKS", "Особый подарок от создателя! Лицензия Minecraft Java Edition", "divine", "🔑"),
 ];
 
-// LEGENDARY ITEMS - Легендарные сокровища
-export const LEGENDARY_ITEMS: SpinItem[] = [
-  createItem("santas_hat", "Шапка Деда Мороза", "Настоящая! Тёплая и волшебная", "legendary", "🎅"),
-  createItem("reindeer_antlers", "Рога Рудольфа", "Светятся в темноте!", "legendary", "✨"),
-  createItem("infinite_gift", "Бесконечный Подарок", "Каждый раз новый сюрприз", "legendary", "🎁"),
-  createItem("christmas_miracle", "Рождественское Чудо", "Исполняет одно желание", "legendary", "⭐"),
-  createItem("golden_tree", "Золотая Ёлка", "Сияет ярче солнца", "legendary", "🌟"),
-];
+// Полные коллекции игроков (включая божественные)
+export const KLENKO_ALL_ITEMS: SpinItem[] = [...KLENKO_ITEMS, ...KLENKO_DIVINE];
+export const HOHOYKS_ALL_ITEMS: SpinItem[] = [...HOHOYKS_ITEMS, ...HOHOYKS_DIVINE];
 
-// MYTHIC ITEMS - Мифические артефакты Нового Года
-export const MYTHIC_ITEMS: SpinItem[] = [
-  createItem("santas_bag", "Мешок Деда Мороза", "Вмещает все подарки мира", "mythic", "🎒"),
-  createItem("time_crystal", "Кристалл Времени", "Останавливает полночь навечно", "mythic", "💎"),
-  createItem("spirit_of_christmas", "Дух Рождества", "Чистая магия праздника", "mythic", "👼"),
-  createItem("eternal_snow", "Вечный Снег", "Падает только для тебя", "mythic", "🌨️"),
-];
+// Все предметы (для обратной совместимости)
+export const ALL_ITEMS: SpinItem[] = [...KLENKO_ALL_ITEMS, ...HOHOYKS_ALL_ITEMS];
 
-// ALL ITEMS
-export const ALL_ITEMS: SpinItem[] = [
-  ...COMMON_ITEMS,
-  ...UNCOMMON_ITEMS,
-  ...RARE_ITEMS,
-  ...EPIC_ITEMS,
-  ...LEGENDARY_ITEMS,
-  ...MYTHIC_ITEMS,
-];
-
-// Helper function to get items by rarity
-export const getItemsByRarity = (rarity: Rarity): SpinItem[] => {
-  switch (rarity) {
-    case "common":
-      return COMMON_ITEMS;
-    case "uncommon":
-      return UNCOMMON_ITEMS;
-    case "rare":
-      return RARE_ITEMS;
-    case "epic":
-      return EPIC_ITEMS;
-    case "legendary":
-      return LEGENDARY_ITEMS;
-    case "mythic":
-      return MYTHIC_ITEMS;
-    default:
-      return COMMON_ITEMS;
+// Helper function to get player's item pool
+export const getPlayerItems = (nickname: string): SpinItem[] => {
+  const upperNickname = nickname.toUpperCase();
+  if (upperNickname === "KLENKO") {
+    return KLENKO_ALL_ITEMS;
+  } else if (upperNickname === "HOHOYKS") {
+    return HOHOYKS_ALL_ITEMS;
   }
+  return [];
+};
+
+// Helper function to get items by rarity for specific player
+export const getItemsByRarity = (rarity: Rarity, nickname: string): SpinItem[] => {
+  const playerItems = getPlayerItems(nickname);
+  return playerItems.filter(item => item.rarity === rarity);
 };
 
 // Helper function to get a specific item by ID

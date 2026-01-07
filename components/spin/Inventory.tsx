@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { SpinItemCard } from "./SpinItem";
+import { Collection } from "./Collection";
 import type { SpinResult, Rarity } from "@/types/spin";
 import { RARITY_CONFIG } from "@/types/spin";
 import { useState } from "react";
@@ -11,9 +12,13 @@ interface InventoryProps {
   items: SpinResult[];
   isOpen: boolean;
   onClose: () => void;
+  playerNickname?: string;
 }
 
+type TabType = "inventory" | "collection";
+
 const RARITY_ORDER: Rarity[] = [
+  "divine",
   "mythic",
   "legendary",
   "epic",
@@ -22,8 +27,9 @@ const RARITY_ORDER: Rarity[] = [
   "common",
 ];
 
-export function Inventory({ items, isOpen, onClose }: InventoryProps) {
+export function Inventory({ items, isOpen, onClose, playerNickname = "KLENKO" }: InventoryProps) {
   const [selectedRarity, setSelectedRarity] = useState<Rarity | "all">("all");
+  const [activeTab, setActiveTab] = useState<TabType>("inventory");
 
   // Group items by rarity
   const groupedItems = items.reduce((acc, result) => {
@@ -70,13 +76,15 @@ export function Inventory({ items, isOpen, onClose }: InventoryProps) {
           >
             {/* Header */}
             <div className="p-6 border-b border-white/10">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-4">
                 <h2 className="text-3xl font-bold text-white flex items-center gap-3">
-                  <span>🎒</span>
-                  Инвентарь
-                  <span className="text-lg text-gray-400">
-                    ({items.length} предметов)
-                  </span>
+                  <span>{activeTab === "inventory" ? "🎒" : "📚"}</span>
+                  {activeTab === "inventory" ? "Инвентарь" : "Коллекция"}
+                  {activeTab === "inventory" && (
+                    <span className="text-lg text-gray-400">
+                      ({items.length} предметов)
+                    </span>
+                  )}
                 </h2>
                 <Button
                   variant="ghost"
@@ -88,78 +96,114 @@ export function Inventory({ items, isOpen, onClose }: InventoryProps) {
                 </Button>
               </div>
 
-              {/* Rarity filters */}
-              <div className="flex flex-wrap gap-2 mt-4">
+              {/* Tab switcher */}
+              <div className="flex gap-2 mb-4">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={`px-4 py-2 rounded-full text-sm font-bold hover:scale-105 active:scale-95 transition-all ${
-                    selectedRarity === "all"
-                      ? "bg-white text-black hover:bg-white/90"
+                  className={`px-6 py-2 rounded-full text-sm font-bold hover:scale-105 active:scale-95 transition-all ${
+                    activeTab === "inventory"
+                      ? "bg-gradient-to-r from-amber-600 to-amber-500 text-white"
                       : "bg-white/10 text-white hover:bg-white/20"
                   }`}
-                  onClick={() => setSelectedRarity("all")}
+                  onClick={() => setActiveTab("inventory")}
                 >
-                  Все ({items.length})
+                  🎒 Инвентарь
                 </Button>
-                {rarityCounts.map(({ rarity, count, config }) =>
-                  count > 0 ? (
-                    <Button
-                      key={rarity}
-                      variant="ghost"
-                      size="sm"
-                      className="px-4 py-2 rounded-full text-sm font-bold hover:scale-105 active:scale-95 transition-all"
-                      style={{
-                        background:
-                          selectedRarity === rarity
-                            ? config.bgGradient
-                            : `${config.color}20`,
-                        color:
-                          selectedRarity === rarity ? "white" : config.color,
-                        boxShadow:
-                          selectedRarity === rarity
-                            ? `0 0 10px ${config.glowColor}`
-                            : "none",
-                      }}
-                      onClick={() => setSelectedRarity(rarity)}
-                    >
-                      {config.name} ({count})
-                    </Button>
-                  ) : null
-                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`px-6 py-2 rounded-full text-sm font-bold hover:scale-105 active:scale-95 transition-all ${
+                    activeTab === "collection"
+                      ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
+                      : "bg-white/10 text-white hover:bg-white/20"
+                  }`}
+                  onClick={() => setActiveTab("collection")}
+                >
+                  📚 Коллекция
+                </Button>
               </div>
+
+              {/* Rarity filters - только для инвентаря */}
+              {activeTab === "inventory" && (
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`px-4 py-2 rounded-full text-sm font-bold hover:scale-105 active:scale-95 transition-all ${
+                      selectedRarity === "all"
+                        ? "bg-white text-black hover:bg-white/90"
+                        : "bg-white/10 text-white hover:bg-white/20"
+                    }`}
+                    onClick={() => setSelectedRarity("all")}
+                  >
+                    Все ({items.length})
+                  </Button>
+                  {rarityCounts.map(({ rarity, count, config }) =>
+                    count > 0 ? (
+                      <Button
+                        key={rarity}
+                        variant="ghost"
+                        size="sm"
+                        className="px-4 py-2 rounded-full text-sm font-bold hover:scale-105 active:scale-95 transition-all"
+                        style={{
+                          background:
+                            selectedRarity === rarity
+                              ? config.bgGradient
+                              : `${config.color}20`,
+                          color:
+                            selectedRarity === rarity ? "white" : config.color,
+                          boxShadow:
+                            selectedRarity === rarity
+                              ? `0 0 10px ${config.glowColor}`
+                              : "none",
+                        }}
+                        onClick={() => setSelectedRarity(rarity)}
+                      >
+                        {config.name} ({count})
+                      </Button>
+                    ) : null
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* Items grid */}
+            {/* Content */}
             <div className="p-6 overflow-y-auto max-h-[calc(80vh-200px)]">
-              {filteredItems.length === 0 ? (
-                <div className="text-center text-gray-500 py-12">
-                  <span className="text-6xl block mb-4">📦</span>
-                  <p>Пока пусто. Крутите, чтобы получить предметы!</p>
-                </div>
+              {activeTab === "inventory" ? (
+                // Инвентарь
+                filteredItems.length === 0 ? (
+                  <div className="text-center text-gray-500 py-12">
+                    <span className="text-6xl block mb-4">📦</span>
+                    <p>Пока пусто. Крутите, чтобы получить предметы!</p>
+                  </div>
+                ) : (
+                  <motion.div
+                    className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
+                    layout
+                  >
+                    {filteredItems
+                      .sort((a, b) => {
+                        const aIndex = RARITY_ORDER.indexOf(a.item.rarity);
+                        const bIndex = RARITY_ORDER.indexOf(b.item.rarity);
+                        return aIndex - bIndex;
+                      })
+                      .map((result, index) => (
+                        <motion.div
+                          key={`${result.item.id}-${result.timestamp}`}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: index * 0.05 }}
+                          layout
+                        >
+                          <SpinItemCard item={result.item} size="md" showDetails />
+                        </motion.div>
+                      ))}
+                  </motion.div>
+                )
               ) : (
-                <motion.div
-                  className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
-                  layout
-                >
-                  {filteredItems
-                    .sort((a, b) => {
-                      const aIndex = RARITY_ORDER.indexOf(a.item.rarity);
-                      const bIndex = RARITY_ORDER.indexOf(b.item.rarity);
-                      return aIndex - bIndex;
-                    })
-                    .map((result, index) => (
-                      <motion.div
-                        key={`${result.item.id}-${result.timestamp}`}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: index * 0.05 }}
-                        layout
-                      >
-                        <SpinItemCard item={result.item} size="md" showDetails />
-                      </motion.div>
-                    ))}
-                </motion.div>
+                // Коллекция
+                <Collection inventory={items} playerNickname={playerNickname} />
               )}
             </div>
 
