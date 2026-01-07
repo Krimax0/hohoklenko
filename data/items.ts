@@ -5,7 +5,8 @@ const createItem = (
   name: string,
   description: string,
   rarity: Rarity,
-  emoji: string
+  emoji: string,
+  imageUrl?: string
 ): SpinItem => {
   const rarityColors: Record<Rarity, { color: string; glowColor: string }> = {
     common: { color: "#a8d5ba", glowColor: "rgba(168, 213, 186, 0.5)" },
@@ -23,91 +24,80 @@ const createItem = (
     description,
     rarity,
     image: emoji,
+    ...(imageUrl && { imageUrl }),
     color: rarityColors[rarity].color,
     glowColor: rarityColors[rarity].glowColor,
   };
 };
 
 // ========================================
-// Пул предметов для KLENKO - "невезучий" персонаж
+// Пул предметов для Klenkozarashi - "невезучий" персонаж
 // ========================================
 export const KLENKO_ITEMS: SpinItem[] = [
-  // Common (8 предметов) - много угля
-  createItem("klenko_coal_piece", "Кусочек Угля", "Для непослушных детей", "common", "⬛"),
-  createItem("klenko_coal_chunk", "Угольный Брикет", "Крупный и чёрный", "common", "🪨"),
-  createItem("klenko_coal_dust", "Угольная Пыль", "Пачкает руки", "common", "🖤"),
-  createItem("klenko_coal_small", "Мелкий Уголёк", "Совсем крошечный", "common", "◾"),
-  createItem("klenko_coal_shiny", "Блестящий Уголь", "Почти как алмаз... но нет", "common", "💎"),
-  createItem("klenko_coal_old", "Старый Уголь", "Из прошлого года", "common", "⚫"),
-  createItem("klenko_coal_warm", "Тёплый Уголь", "Ещё не остыл", "common", "🔥"),
-  createItem("klenko_coal_gift", "Уголь в Обёртке", "Подарок? Сюрприз!", "common", "🎁"),
+  // Common (5 предметов) - уголь
+  createItem("klenko_coal_piece", "Кусочек Угля", "Санта был в ярости!", "common", "⬛", "/images/coal.png"),
+  createItem("klenko_coal_chunk", "Угольный Брикет", "Можно топить печку год!", "common", "🪨", "/images/coal_bag.png"),
+  createItem("klenko_coal_dust", "Угольная Пыль", "Теперь ты тоже чёрный", "common", "🖤", "/images/coal_dust.png"),
+  createItem("klenko_coal_shiny", "Блестящий Уголь", "Почти алмаз... почти.", "common", "💎"),
+  createItem("klenko_coal_gift", "Уголь в Обёртке", "Сюрприз! Это снова уголь.", "common", "🎁"),
 
-  // Uncommon (4 предмета)
-  createItem("klenko_christmas_ball", "Ёлочный Шар", "Сверкает огнями гирлянды", "uncommon", "🔴"),
-  createItem("klenko_gift_box", "Подарочная Коробка", "Что же внутри?", "uncommon", "🎁"),
-  createItem("klenko_wreath", "Рождественский Венок", "Украшен красными ягодами", "uncommon", "💚"),
-  createItem("klenko_star_cookie", "Звёздное Печенье", "Покрыто глазурью", "uncommon", "⭐"),
+  // Uncommon (3 предмета)
+  createItem("klenko_christmas_ball", "Ёлочный Шар", "Уронил? Ну, бывает...", "uncommon", "🔴"),
+  createItem("klenko_gift_box", "Подарочная Коробка", "Внутри ещё одна коробка!", "uncommon", "🎁"),
+  createItem("klenko_star_cookie", "Звёздное Печенье", "Откусил звезде луч, упс", "uncommon", "⭐"),
 
-  // Rare (3 предмета)
-  createItem("klenko_snow_globe", "Снежный Шар", "Внутри миниатюрная зима", "rare", "🔮"),
-  createItem("klenko_ice_skates", "Коньки", "Для катания по льду", "rare", "⛸️"),
-  createItem("klenko_nutcracker", "Щелкунчик", "Деревянный солдатик", "rare", "🪖"),
+  // Rare (2 предмета)
+  createItem("klenko_snow_globe", "Снежный Шар", "Потряси! Ещё! ЕЩЁ!", "rare", "🔮"),
+  createItem("klenko_misa_foil", "Миса в Фольге", "Защита от инопланетян!", "rare", "🪖", "/images/misa_foil_hat.jpg"),
 
   // Epic (2 предмета)
-  createItem("klenko_magic_sleigh", "Волшебные Сани", "Летят по небу!", "epic", "🛷"),
-  createItem("klenko_aurora_bottle", "Северное Сияние в Бутылке", "Переливается всеми цветами", "epic", "🌌"),
+  createItem("klenko_misa_propeller", "Миса с Пропеллером", "Готова к взлёту!", "epic", "🛷", "/images/misa_propeller_hat.jpg"),
+  createItem("klenko_blood_crystal", "Кровавый Кристалл", "Лизни его. Давай, лизни.", "epic", "💎", "/images/blood_crystal.png"),
 
   // Legendary (2 предмета)
-  createItem("klenko_santas_hat", "Шапка Деда Мороза", "Настоящая! Тёплая и волшебная", "legendary", "🎅"),
-  createItem("klenko_infinite_gift", "Бесконечный Подарок", "Каждый раз новый сюрприз", "legendary", "🎁"),
+  createItem("klenko_misa_new_year", "Новогодняя Миса", "Уже открыла все подарки!", "legendary", "🎅", "/images/misa_new_year.png"),
+  createItem("klenko_misa_pixel", "Пиксельная Миса", "8 бит чистого счастья!", "legendary", "🎁", "/images/misa_pixel.png"),
 
   // Mythic (1 предмет)
-  createItem("klenko_santas_bag", "Мешок Деда Мороза", "Вмещает все подарки мира", "mythic", "🎒"),
+  createItem("klenko_misa_winter_devil", "Миса Зимний Демон", "Даже снеговики её боятся!", "mythic", "🎒", "/images/misa_winter_devil.png"),
 ];
 
-// Divine для KLENKO
+// Divine для Klenkozarashi
 export const KLENKO_DIVINE: SpinItem[] = [
-  createItem("klenko_minecraft_key", "🎁 Ключ Minecraft для KLENKO", "Особый подарок от создателя! Лицензия Minecraft Java Edition", "divine", "🔑"),
+  createItem("klenko_minecraft_key", "🎁 Ключ Minecraft для Klenkozarashi", "Особый подарок от создателя! Лицензия Minecraft Java Edition", "divine", "🔑"),
 ];
 
 // ========================================
-// АДСКИЕ ВЕРСИИ предметов для KLENKO (когда реальность искажается)
+// АДСКИЕ ВЕРСИИ предметов для Klenkozarashi (когда реальность искажается)
 // ========================================
 export const KLENKO_HELLISH_ITEMS: SpinItem[] = [
-  // Common (8 предметов) - адский уголь
-  createItem("klenko_hell_coal_piece", "🔥 Адский Уголь", "Горит вечным пламенем", "common", "🔥"),
-  createItem("klenko_hell_coal_chunk", "🔥 Пылающий Брикет", "Обжигает душу", "common", "💀"),
-  createItem("klenko_hell_coal_dust", "🔥 Пепел Проклятых", "Остатки грешников", "common", "☠️"),
-  createItem("klenko_hell_coal_small", "🔥 Искра Ада", "Маленькая, но опасная", "common", "⚡"),
-  createItem("klenko_hell_coal_shiny", "🔥 Кровавый Алмаз", "Пропитан страданиями", "common", "💎"),
-  createItem("klenko_hell_coal_old", "🔥 Древний Пепел", "Из первого круга ада", "common", "🌑"),
-  createItem("klenko_hell_coal_warm", "🔥 Жар Преисподней", "Никогда не остынет", "common", "🌋"),
-  createItem("klenko_hell_coal_gift", "🔥 Проклятый Дар", "Подарок от самого дьявола", "common", "👹"),
+  // Common (4 предмета)
+  createItem("klenko_hell_coal_piece", "🔥 Адский Уголь", "Руки уже горят, да?", "common", "🔥", "/images/hell_coal.png"),
+  createItem("klenko_hell_coal_dust", "🔥 Пепел Проклятых", "Бывший грешник. Теперь пыль.", "common", "☠️"),
+  createItem("klenko_hell_coal_shiny", "🔥 Кровавый Алмаз", "Красиво? Это кровь.", "common", "💎"),
+  createItem("klenko_hell_coal_gift", "🔥 Проклятый Дар", "Не открывай. Серьёзно.", "common", "👹"),
 
-  // Uncommon (4 предмета)
-  createItem("klenko_hell_christmas_ball", "🔥 Шар Проклятий", "Отражает твои грехи", "uncommon", "🔴"),
-  createItem("klenko_hell_gift_box", "🔥 Ящик Пандоры", "Лучше не открывать", "uncommon", "📦"),
-  createItem("klenko_hell_wreath", "🔥 Венок Шипов", "Колючий и опасный", "uncommon", "🥀"),
-  createItem("klenko_hell_star_cookie", "🔥 Печенье Отчаяния", "Горькое на вкус", "uncommon", "🍪"),
+  // Uncommon (3 предмета)
+  createItem("klenko_hell_gift_box", "🔥 Ящик Пандоры", "Открыл? Ну, удачи.", "uncommon", "📦"),
+  createItem("klenko_hell_wreath", "🔥 Венок Шипов", "Примерь! Будет весело!", "uncommon", "🥀"),
+  createItem("klenko_hell_star_cookie", "🔥 Печенье Отчаяния", "На вкус как твои слёзы", "uncommon", "🍪", "/images/hell_cookie.png"),
 
-  // Rare (3 предмета)
-  createItem("klenko_hell_snow_globe", "🔥 Шар Кошмаров", "Внутри вечная тьма", "rare", "🌑"),
-  createItem("klenko_hell_ice_skates", "🔥 Коньки Страданий", "Режут по льду ада", "rare", "⛸️"),
-  createItem("klenko_hell_nutcracker", "🔥 Костолом", "Ломает не только орехи", "rare", "💀"),
+  // Rare (2 предмета)
+  createItem("klenko_hell_snow_globe", "🔥 Шар Кошмаров", "Потряси. Увидишь свой страх.", "rare", "🌑"),
+  createItem("klenko_hell_nutcracker", "🔥 Костолом", "Орехи? Какие орехи?", "rare", "💀"),
 
   // Epic (2 предмета)
-  createItem("klenko_hell_magic_sleigh", "🔥 Колесница Ада", "Везет прямо в преисподнюю", "epic", "🛷"),
-  createItem("klenko_hell_aurora_bottle", "🔥 Кровавое Сияние", "Северное сияние из ада", "epic", "🩸"),
+  createItem("klenko_hell_magic_sleigh", "🔥 Колесница Ада", "Следующая остановка: вечность", "epic", "🛷"),
+  createItem("klenko_hell_aurora_bottle", "🔥 Кровавое Сияние", "Северное сияние, но больнее", "epic", "🩸"),
 
-  // Legendary (2 предмета)
-  createItem("klenko_hell_santas_hat", "🔥 Шапка Крампуса", "Носит демон Рождества", "legendary", "👹"),
-  createItem("klenko_hell_infinite_gift", "🔥 Бесконечное Проклятие", "Дарит только страдания", "legendary", "💀"),
+  // Legendary (1 предмет)
+  createItem("klenko_hell_misa_devil", "🔥 Демон Миса", "Ангел? Не, не слышала!", "legendary", "👹", "/images/misa_devil.png"),
 
   // Mythic (1 предмет)
-  createItem("klenko_hell_santas_bag", "🔥 Мешок Душ", "Вмещает души грешников", "mythic", "👻"),
+  createItem("klenko_hell_santas_bag", "🔥 Мешок Душ", "Твоя тоже поместится!", "mythic", "👻"),
 ];
 
-// Divine для KLENKO в адском режиме
+// Divine для Klenkozarashi в адском режиме
 export const KLENKO_HELLISH_DIVINE: SpinItem[] = [
   createItem("klenko_hell_minecraft_key", "🔥 Проклятый Ключ Minecraft", "Ключ, выкованный в аду! Лицензия Minecraft Java Edition... но какой ценой?", "divine", "🗝️"),
 ];
@@ -116,37 +106,33 @@ export const KLENKO_HELLISH_DIVINE: SpinItem[] = [
 // Пул предметов для HOHOYKS - "удачливый" персонаж
 // ========================================
 export const HOHOYKS_ITEMS: SpinItem[] = [
-  // Common (5 предметов) - меньше угля
-  createItem("hohoyks_snowflake", "Снежинка", "Уникальная и прекрасная", "common", "❄️"),
-  createItem("hohoyks_candy_cane", "Леденец", "Мятный и сладкий", "common", "🍬"),
-  createItem("hohoyks_mittens", "Варежки", "Тёплые и уютные", "common", "🧤"),
-  createItem("hohoyks_ornament", "Ёлочная игрушка", "Блестящая и яркая", "common", "🎀"),
-  createItem("hohoyks_stocking", "Рождественский носок", "Для подарков", "common", "🧦"),
+  // Common (3 предмета)
+  createItem("hohoyks_snowflake", "Снежинка", "Растаяла пока ты читал", "common", "❄️"),
+  createItem("hohoyks_candy_cane", "Леденец", "Язык прилип? Говорили же!", "common", "🍬"),
+  createItem("hohoyks_stocking", "Рождественский носок", "Пахнет мандаринами!", "common", "🧦"),
 
-  // Uncommon (5 предметов)
-  createItem("hohoyks_snowman_hat", "Шляпа Снеговика", "Немного потрёпанная", "uncommon", "🎩"),
-  createItem("hohoyks_jingle_bells", "Бубенцы", "Дзинь-дзинь-дзинь!", "uncommon", "🎶"),
-  createItem("hohoyks_christmas_lights", "Гирлянда", "Мигает разными цветами", "uncommon", "✨"),
-  createItem("hohoyks_eggnog", "Гоголь-Моголь", "Праздничный напиток", "uncommon", "🥛"),
-  createItem("hohoyks_gingerbread", "Пряничный человечек", "Вкусный и ароматный", "uncommon", "🍪"),
+  // Uncommon (4 предмета)
+  createItem("hohoyks_snowman_hat", "Шляпа Снеговика", "Предыдущий владелец растаял", "uncommon", "🎩"),
+  createItem("hohoyks_jingle_bells", "Бубенцы", "Соседи уже ненавидят тебя!", "uncommon", "🎶"),
+  createItem("hohoyks_christmas_lights", "Гирлянда", "Одна лампочка не горит. Найди.", "uncommon", "✨"),
+  createItem("hohoyks_gingerbread", "Пряничный человечек", "Убежал из духовки!", "uncommon", "🍪"),
 
   // Rare (4 предмета)
-  createItem("hohoyks_reindeer_plush", "Плюшевый Олень", "Мягкий и пушистый", "rare", "🦌"),
-  createItem("hohoyks_christmas_sweater", "Новогодний Свитер", "С оленями и ёлками", "rare", "🧥"),
-  createItem("hohoyks_music_box", "Музыкальная Шкатулка", "Играет 'Jingle Bells'", "rare", "🎵"),
-  createItem("hohoyks_crystal_star", "Хрустальная Звезда", "Для верхушки ёлки", "rare", "💫"),
+  createItem("hohoyks_oksik_road", "Оксик на Машинке", "Бип-бип, с дороги!", "rare", "🦌", "/images/oksik_road.png"),
+  createItem("hohoyks_oksik_crochet", "Оксик-Рукодельник", "Свяжет игрушку за 5 минут!", "rare", "🧥", "/images/oksik_crochet.png"),
+  createItem("hohoyks_oksik_dance", "Танцующий Оксик", "Ноги сами идут в пляс!", "rare", "🎵", "/images/oksik_dance.png"),
+  createItem("hohoyks_oksik_pixel", "Пиксельный Оксик", "Квадратный, но милый!", "rare", "💫", "/images/oksik_pixel.png"),
 
-  // Epic (3 предмета)
-  createItem("hohoyks_eternal_wreath", "Вечнозелёный Венок", "Никогда не увядает", "epic", "🌿"),
-  createItem("hohoyks_golden_bell", "Золотой Колокол", "Исполняет желания при звоне", "epic", "🔔"),
-  createItem("hohoyks_frost_wand", "Посох Мороза", "Создаёт снежинки", "epic", "🪄"),
+  // Epic (2 предмета)
+  createItem("hohoyks_golden_bell", "Золотой Колокол", "Дин-дон, ты богат!", "epic", "🔔"),
+  createItem("hohoyks_frost_wand", "Волшебная Сосулька", "Лизни её! Язык к ней точно не прилипнет... наверное", "epic", "🧊"),
 
   // Legendary (2 предмета)
-  createItem("hohoyks_reindeer_antlers", "Рога Рудольфа", "Светятся в темноте!", "legendary", "✨"),
-  createItem("hohoyks_golden_tree", "Золотая Ёлка", "Сияет ярче солнца", "legendary", "🌟"),
+  createItem("hohoyks_oksik_sledge", "Оксик на Санках", "Тормоза для слабаков!", "legendary", "✨", "/images/oksik_on_sledge.png"),
+  createItem("hohoyks_golden_tree", "Золотая Ёлка", "Соседи ослепли от зависти!", "legendary", "🌟"),
 
   // Mythic (1 предмет)
-  createItem("hohoyks_time_crystal", "Кристалл Времени", "Останавливает полночь навечно", "mythic", "💎"),
+  createItem("hohoyks_oksik_new_year", "Новогодний Оксик", "Главный по мандаринкам!", "mythic", "💎", "/images/oksik_new_year.png"),
 ];
 
 // SECRET LEGENDARY для HOHOYKS - Крутка Бесконечности
@@ -173,7 +159,7 @@ export const ALL_ITEMS: SpinItem[] = [...KLENKO_ALL_ITEMS, ...HOHOYKS_ALL_ITEMS]
 // Helper function to get player's item pool
 export const getPlayerItems = (nickname: string, hellMode: boolean = false): SpinItem[] => {
   const upperNickname = nickname.toUpperCase();
-  if (upperNickname === "KLENKO") {
+  if (upperNickname === "KLENKOZARASHI") {
     // В адском режиме возвращаем адские предметы с адским divine
     if (hellMode) {
       return [...KLENKO_HELLISH_ITEMS, ...KLENKO_HELLISH_DIVINE];

@@ -14,7 +14,7 @@ interface SpinWheelProps {
   isSpinning: boolean;
   onSpinComplete: (result: SpinResult) => void;
   fastMode?: boolean; // Ускоренный режим для авто-крутки
-  hellMode?: boolean; // Адский режим для KLENKO
+  hellMode?: boolean; // Адский режим для Klenkozarashi
 }
 
 const ITEM_WIDTH = 124; // Width of each item (112px w-28) + gap (12px gap-3)

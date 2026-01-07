@@ -62,7 +62,7 @@ export function LoginScreen() {
     }
 
     if (!VALID_NICKNAMES.includes(trimmedNick)) {
-      setError("Неверный никнейм! Доступны: KLENKO или HOHOYKS");
+      setError("Неверный никнейм! Доступны: Klenkozarashi или HOHOYKS");
       shakeInput();
       return;
     }
@@ -266,7 +266,7 @@ export function LoginScreen() {
                 className={`login-input h-14 text-xl text-center bg-white/10 border-amber-500/50 text-white placeholder:text-gray-400 focus:border-amber-400 ${
                   isShaking ? "border-red-500" : ""
                 }`}
-                placeholder="KLENKO или HOHOYKS"
+                placeholder="Klenkozarashi или HOHOYKS"
                 value={nickname}
                 onChange={(e) => {
                   setNickname(e.target.value.toUpperCase());
@@ -323,10 +323,10 @@ export function LoginScreen() {
             className="flex items-center gap-2 px-4 py-2 bg-red-500/20 rounded-full cursor-pointer hover:bg-red-500/40 transition-colors border border-red-500/30"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            onClick={() => setNickname("KLENKO")}
+            onClick={() => setNickname("KLENKOZARASHI")}
           >
-            <Image src="/klenko.jpg" alt="KLENKO" width={24} height={24} className="rounded-full" />
-            KLENKO
+            <Image src="/klenko.jpg" alt="Klenkozarashi" width={24} height={24} className="rounded-full" />
+            Klenkozarashi
           </motion.button>
           <motion.button
             className="flex items-center gap-2 px-4 py-2 bg-green-500/20 rounded-full cursor-pointer hover:bg-green-500/40 transition-colors border border-green-500/30"

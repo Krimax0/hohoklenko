@@ -37,7 +37,7 @@ const generateAltNicks = (name: string): string[] => {
 
 // Личные пожелания для игроков
 const personalMessages: Record<string, string[]> = {
-  KLENKO: [
+  KLENKOZARASHI: [
     "ценю каждую минуту проведённую с вами",
     "хочу всегда быть рядом с вами",
     "желаю вам самого лучшего Нового Года!",
@@ -63,7 +63,7 @@ export function FinalScreen({ playerName, isOpen, onClose }: FinalScreenProps) {
   const [showOchen, setShowOchen] = useState(0); // 0 - нет, 1 - первое очень, 2 - второе ОЧЕНЬ
 
   const altNicks = generateAltNicks(playerName);
-  const messages = personalMessages[playerName.toUpperCase()] || personalMessages.KLENKO;
+  const messages = personalMessages[playerName.toUpperCase()] || personalMessages.KLENKOZARASHI;
 
   // Сброс состояния при открытии
   useEffect(() => {

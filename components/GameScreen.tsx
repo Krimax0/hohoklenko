@@ -9,6 +9,7 @@ import { SpinWheel } from "@/components/spin/SpinWheel";
 import { VictoryScreen } from "@/components/spin/VictoryScreen";
 import { Inventory } from "@/components/spin/Inventory";
 import { SpecialMessageModal } from "@/components/spin/SpecialMessageModal";
+import { LuckToast } from "@/components/spin/LuckToast";
 import { FinalScreen } from "@/components/FinalScreen";
 import { Snowfall } from "@/components/effects/Snowfall";
 import Aurora from "@/components/Aurora";
@@ -35,11 +36,13 @@ export function GameScreen() {
     showVictoryScreen,
     currentSpin,
     specialMessage,
+    luckMessage,
     showBonusSpin,
     startSpin,
     completeSpin,
     closeVictoryScreen,
     closeSpecialMessage,
+    closeLuckMessage,
     activateBonusSpin,
     transformToHellItems,
     logout,
@@ -56,12 +59,12 @@ export function GameScreen() {
   const playerInfo = currentPlayer ? getPlayerInfo(currentPlayer.nickname) : null;
 
   // Проверяем специальные состояния
-  const isKlenko = currentPlayer?.nickname.toUpperCase() === "KLENKO";
+  const isKlenko = currentPlayer?.nickname.toUpperCase() === "KLENKOZARASHI";
   const isHohoyks = currentPlayer?.nickname.toUpperCase() === "HOHOYKS";
   const hasInfinitySpin = currentPlayer?.hasInfinitySpin || false;
   const hellModeActive = currentPlayer?.hellModeActive || false;
 
-  // Для KLENKO показываем отрицательные крутки
+  // Для Klenkozarashi показываем отрицательные крутки
   const displaySpinCount = currentPlayer ? (
     isKlenko && currentPlayer.currentSpinIndex > 30
       ? 30 - currentPlayer.currentSpinIndex // Отрицательное число
@@ -139,7 +142,7 @@ export function GameScreen() {
     };
   }, [autoMode, showVictoryScreen, hasSpinsLeft, lastResult, closeVictoryScreen, startSpin]);
 
-  // Выключаем авто-режим когда крутки закончились (но не для KLENKO!)
+  // Выключаем авто-режим когда крутки закончились (но не для Klenkozarashi!)
   useEffect(() => {
     if (autoMode && !hasSpinsLeft && !isSpinning && !isKlenko) {
       setAutoMode(false);
@@ -165,8 +168,8 @@ export function GameScreen() {
 
   if (!currentPlayer) return null;
 
-  // Получаем шансы для отображения
-  const chances = getFormattedChances(currentPlayer.nickname);
+  // Получаем шансы для отображения (с учётом модификатора после 40 круток)
+  const chances = getFormattedChances(currentPlayer.nickname, currentPlayer.lowRaritiesRemoved);
 
   // Цвета Aurora в зависимости от режима
   const auroraColors = hellModeActive
@@ -228,7 +231,7 @@ export function GameScreen() {
               transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
             >
               <Image
-                src={currentPlayer.nickname === "KLENKO" ? "/klenko.jpg" : "/hohoyks.jpg"}
+                src={currentPlayer.nickname === "Klenkozarashi" ? "/klenko.jpg" : "/hohoyks.jpg"}
                 alt={currentPlayer.nickname}
                 width={64}
                 height={64}
@@ -625,6 +628,7 @@ export function GameScreen() {
         onClose={() => setShowInventory(false)}
         playerNickname={currentPlayer.nickname}
         hellMode={hellModeActive}
+        lowRaritiesRemoved={currentPlayer.lowRaritiesRemoved}
       />
 
       {/* Special Message Modal */}
@@ -634,6 +638,14 @@ export function GameScreen() {
         onClose={closeSpecialMessage}
         showBonusButton={showBonusSpin}
         onBonusClick={handleBonusSpinClick}
+      />
+
+      {/* Luck Toast (небольшие сообщения удачи в левом нижнем углу) */}
+      <LuckToast
+        message={luckMessage}
+        isVisible={luckMessage !== null}
+        onClose={closeLuckMessage}
+        autoHideDelay={3500}
       />
 
       {/* Final Screen */}

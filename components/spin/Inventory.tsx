@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { SpinItemCard } from "./SpinItem";
 import { Collection } from "./Collection";
-import type { SpinResult, Rarity } from "@/types/spin";
+import { ItemDetailModal } from "./ItemDetailModal";
+import type { SpinResult, Rarity, SpinItem } from "@/types/spin";
 import { RARITY_CONFIG } from "@/types/spin";
 import { useState } from "react";
 
@@ -14,6 +15,7 @@ interface InventoryProps {
   onClose: () => void;
   playerNickname?: string;
   hellMode?: boolean;
+  lowRaritiesRemoved?: boolean;
 }
 
 type TabType = "inventory" | "collection";
@@ -28,9 +30,10 @@ const RARITY_ORDER: Rarity[] = [
   "common",
 ];
 
-export function Inventory({ items, isOpen, onClose, playerNickname = "KLENKO", hellMode = false }: InventoryProps) {
+export function Inventory({ items, isOpen, onClose, playerNickname = "Klenkozarashi", hellMode = false, lowRaritiesRemoved = false }: InventoryProps) {
   const [selectedRarity, setSelectedRarity] = useState<Rarity | "all">("all");
   const [activeTab, setActiveTab] = useState<TabType>("inventory");
+  const [selectedItem, setSelectedItem] = useState<SpinItem | null>(null);
 
   // Group items by rarity
   const groupedItems = items.reduce((acc, result) => {
@@ -187,7 +190,7 @@ export function Inventory({ items, isOpen, onClose, playerNickname = "KLENKO", h
             </div>
 
             {/* Content */}
-            <div className="p-6 overflow-y-auto max-h-[calc(80vh-200px)]">
+            <div className="p-6 overflow-y-auto overflow-x-hidden max-h-[calc(80vh-200px)]">
               {activeTab === "inventory" ? (
                 // Инвентарь
                 filteredItems.length === 0 ? (
@@ -213,6 +216,10 @@ export function Inventory({ items, isOpen, onClose, playerNickname = "KLENKO", h
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: index * 0.05 }}
                           layout
+                          className="cursor-pointer"
+                          onClick={() => setSelectedItem(result.item)}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                         >
                           <SpinItemCard item={result.item} size="md" showDetails />
                         </motion.div>
@@ -221,7 +228,7 @@ export function Inventory({ items, isOpen, onClose, playerNickname = "KLENKO", h
                 )
               ) : (
                 // Коллекция
-                <Collection inventory={items} playerNickname={playerNickname} hellMode={hellMode} />
+                <Collection inventory={items} playerNickname={playerNickname} hellMode={hellMode} lowRaritiesRemoved={lowRaritiesRemoved} />
               )}
             </div>
 
@@ -241,6 +248,14 @@ export function Inventory({ items, isOpen, onClose, playerNickname = "KLENKO", h
               </div>
             </div>
           </motion.div>
+
+          {/* Item Detail Modal */}
+          <ItemDetailModal
+            item={selectedItem}
+            isOpen={selectedItem !== null}
+            onClose={() => setSelectedItem(null)}
+            hellMode={hellMode}
+          />
         </motion.div>
       )}
     </AnimatePresence>

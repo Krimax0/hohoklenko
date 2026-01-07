@@ -39,11 +39,11 @@ export const HOHOYKS_INFINITY_MESSAGE: SpecialMessage = {
 export const HOHOYKS_40_SPIN_MESSAGE: SpecialMessage = {
   type: "info",
   title: "Улучшение пула!",
-  message: "Вам не надоело получать так много мусора? Давай исправим это! Теперь вам будут выпадать только редкие предметы и выше! 🌟",
+  message: "Вам не надоело получать так много мусора? Давай исправим это! Теперь шанс выпадения обычных и необычных предметов сильно снижен! 🌟",
   icon: "🎁",
 };
 
-// Сообщение после 30-й крутки для KLENKO
+// Сообщение после 30-й крутки для Klenkozarashi
 export const KLENKO_30_SPIN_MESSAGE: SpecialMessage = {
   type: "warning",
   title: "Крутки закончились...",
@@ -51,7 +51,7 @@ export const KLENKO_30_SPIN_MESSAGE: SpecialMessage = {
   icon: "🎅",
 };
 
-// Прогрессивные предупреждения для KLENKO (отрицательные крутки)
+// Прогрессивные предупреждения для Klenkozarashi (отрицательные крутки)
 // Ключи - это количество круток ПОСЛЕ 30 (31 = 1, 32 = 2, и т.д.)
 export const KLENKO_NEGATIVE_WARNINGS: Record<number, SpecialMessage> = {
   [31]: {
@@ -119,7 +119,7 @@ export function shouldShowLuckMessage(spinIndex: number): boolean {
   return spinsSince30 % interval === 0;
 }
 
-// Функция для получения предупреждения для KLENKO
+// Функция для получения предупреждения для Klenkozarashi
 export function getKlenkoWarning(spinIndex: number): SpecialMessage | null {
   return KLENKO_NEGATIVE_WARNINGS[spinIndex] || null;
 }
@@ -134,7 +134,7 @@ export function shouldShow40SpinMessage(nickname: string, spinIndex: number): bo
   return nickname.toUpperCase() === "HOHOYKS" && spinIndex === 40;
 }
 
-// Проверка, активирован ли адский режим для KLENKO (после 38 круток)
+// Проверка, активирован ли адский режим для Klenkozarashi (после 38 круток)
 export function isHellModeActive(spinIndex: number): boolean {
   return spinIndex >= 38;
 }

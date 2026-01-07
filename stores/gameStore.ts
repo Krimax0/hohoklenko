@@ -24,7 +24,7 @@ interface PlayerState {
   currentSpinIndex: number;
   inventory: SpinResult[];
   hasInfinitySpin: boolean; // Получил ли HOHOYKS крутку бесконечности
-  hellModeActive: boolean; // Активирован ли адский режим для KLENKO
+  hellModeActive: boolean; // Активирован ли адский режим для Klenkozarashi
   lowRaritiesRemoved: boolean; // Удалены ли низкие редкости для HOHOYKS
 }
 
@@ -35,7 +35,8 @@ interface GameState {
   lastResult: SpinResult | null;
   showVictoryScreen: boolean;
   currentSpin: ScriptedSpin | null;
-  specialMessage: SpecialMessage | null; // Специальное сообщение для отображения
+  specialMessage: SpecialMessage | null; // Специальное сообщение для отображения (модальное окно)
+  luckMessage: string | null; // Сообщение удачи для toast (не блокирует игру)
   showBonusSpin: boolean; // Показать ли бонусную крутку для HOHOYKS
   bonusSpinActive: boolean; // Активна ли бонусная крутка (можно крутить даже без hasMoreSpins)
 }
@@ -50,9 +51,10 @@ interface GameStore extends GameState {
   closeVictoryScreen: () => void;
   resetPlayer: () => void;
   hasMoreSpins: () => boolean;
-  closeSpecialMessage: () => void; // Закрыть специальное сообщение
+  closeSpecialMessage: () => void; // Закрыть специальное сообщение (модальное окно)
+  closeLuckMessage: () => void; // Закрыть сообщение удачи (toast)
   activateBonusSpin: () => void; // Активировать бонусную крутку для HOHOYKS
-  transformToHellItems: () => void; // Превратить предметы KLENKO в адские
+  transformToHellItems: () => void; // Превратить предметы Klenkozarashi в адские
   debugGrantDivine: () => void; // DEBUG: Принудительно выдать божественный предмет
 }
 
@@ -67,6 +69,7 @@ export const useGameStore = create<GameStore>()(
       showVictoryScreen: false,
       currentSpin: null,
       specialMessage: null,
+      luckMessage: null,
       showBonusSpin: false,
       bonusSpinActive: false,
 
@@ -89,6 +92,7 @@ export const useGameStore = create<GameStore>()(
             },
             currentSpin: firstSpin,
             specialMessage: null,
+            luckMessage: null,
             showBonusSpin: false,
             bonusSpinActive: false,
           });
@@ -107,6 +111,7 @@ export const useGameStore = create<GameStore>()(
           showVictoryScreen: false,
           currentSpin: null,
           specialMessage: null,
+          luckMessage: null,
           showBonusSpin: false,
           bonusSpinActive: false,
         });
@@ -122,8 +127,8 @@ export const useGameStore = create<GameStore>()(
         const playerInfo = getPlayerInfo(currentPlayer.nickname);
         if (!playerInfo) return;
 
-        // Для KLENKO разрешаем отрицательные крутки
-        const canSpin = currentPlayer.nickname.toUpperCase() === "KLENKO" ||
+        // Для Klenkozarashi разрешаем отрицательные крутки
+        const canSpin = currentPlayer.nickname.toUpperCase() === "KLENKOZARASHI" ||
                        currentPlayer.hasInfinitySpin ||
                        hasSpinsRemaining(currentPlayer.nickname, currentPlayer.currentSpinIndex);
 
@@ -151,10 +156,10 @@ export const useGameStore = create<GameStore>()(
         const playerInfo = getPlayerInfo(currentPlayer.nickname);
         if (!playerInfo) return;
 
-        // Для KLENKO разрешаем отрицательные крутки
+        // Для Klenkozarashi разрешаем отрицательные крутки
         // Для бонусной крутки тоже разрешаем
         const canSpin = bonusSpinActive ||
-                       currentPlayer.nickname.toUpperCase() === "KLENKO" ||
+                       currentPlayer.nickname.toUpperCase() === "KLENKOZARASHI" ||
                        currentPlayer.hasInfinitySpin ||
                        hasSpinsRemaining(currentPlayer.nickname, currentPlayer.currentSpinIndex);
 
@@ -171,13 +176,14 @@ export const useGameStore = create<GameStore>()(
         const newSpinIndex = currentPlayer.currentSpinIndex + 1;
         const updatedInventory = [...currentPlayer.inventory, result];
         let specialMessage: SpecialMessage | null = null;
+        let luckMessage: string | null = null;
         let showBonusSpin = false;
         let hasInfinitySpin = currentPlayer.hasInfinitySpin;
         let hellModeActive = currentPlayer.hellModeActive;
         let lowRaritiesRemoved = currentPlayer.lowRaritiesRemoved;
 
         const isHohoyks = currentPlayer.nickname.toUpperCase() === "HOHOYKS";
-        const isKlenko = currentPlayer.nickname.toUpperCase() === "KLENKO";
+        const isKlenko = currentPlayer.nickname.toUpperCase() === "KLENKOZARASHI";
 
         // ========================================
         // ЛОГИКА ДЛЯ HOHOYKS
@@ -193,24 +199,19 @@ export const useGameStore = create<GameStore>()(
             specialMessage = HOHOYKS_30_SPIN_MESSAGE;
             showBonusSpin = true;
           }
-          // Проверка на 40-ю крутку (удалить низкие редкости)
+          // Проверка на 40-ю крутку (сильно снизить шансы низких редкостей)
           else if (shouldShow40SpinMessage(currentPlayer.nickname, newSpinIndex)) {
             lowRaritiesRemoved = true;
             specialMessage = HOHOYKS_40_SPIN_MESSAGE;
           }
-          // Случайные сообщения удачи после 30 круток
+          // Случайные сообщения удачи после 30 круток (как toast, не блокирует)
           else if (shouldShowLuckMessage(newSpinIndex)) {
-            specialMessage = {
-              type: "info",
-              title: "✨ Удача! ✨",
-              message: getRandomLuckMessage(),
-              icon: "🍀",
-            };
+            luckMessage = getRandomLuckMessage();
           }
         }
 
         // ========================================
-        // ЛОГИКА ДЛЯ KLENKO
+        // ЛОГИКА ДЛЯ Klenkozarashi
         // ========================================
         if (isKlenko) {
           // Проверка на 30-ю крутку
@@ -249,7 +250,7 @@ export const useGameStore = create<GameStore>()(
 
         let nextSpin: ScriptedSpin | null = null;
 
-        // Для KLENKO всегда генерируем спин (даже в минусе)
+        // Для Klenkozarashi всегда генерируем спин (даже в минусе)
         if (isKlenko) {
           nextSpin = generateRandomSpin(currentPlayer.nickname, collectedItemIds, lowRaritiesRemoved, hellModeActive, nextSpinIs200);
         }
@@ -265,6 +266,7 @@ export const useGameStore = create<GameStore>()(
           currentPlayer: updatedPlayer,
           currentSpin: nextSpin,
           specialMessage,
+          luckMessage,
           showBonusSpin,
           bonusSpinActive: false,
         });
@@ -275,9 +277,14 @@ export const useGameStore = create<GameStore>()(
         set({ showVictoryScreen: false, lastResult: null });
       },
 
-      // Close special message
+      // Close special message (modal)
       closeSpecialMessage: () => {
         set({ specialMessage: null });
+      },
+
+      // Close luck message (toast)
+      closeLuckMessage: () => {
+        set({ luckMessage: null });
       },
 
       // Activate bonus spin for HOHOYKS
@@ -303,10 +310,10 @@ export const useGameStore = create<GameStore>()(
         });
       },
 
-      // Transform KLENKO items to hellish versions
+      // Transform Klenkozarashi items to hellish versions
       transformToHellItems: () => {
         const { currentPlayer } = get();
-        if (!currentPlayer || currentPlayer.nickname.toUpperCase() !== "KLENKO") return;
+        if (!currentPlayer || currentPlayer.nickname.toUpperCase() !== "KLENKOZARASHI") return;
 
         // Создаем маппинг обычных предметов на адские
         const hellishMap: Record<string, SpinItem> = {};
@@ -341,7 +348,7 @@ export const useGameStore = create<GameStore>()(
         const { currentPlayer } = get();
         if (!currentPlayer) return;
 
-        const isKlenko = currentPlayer.nickname.toUpperCase() === "KLENKO";
+        const isKlenko = currentPlayer.nickname.toUpperCase() === "KLENKOZARASHI";
         const isHohoyks = currentPlayer.nickname.toUpperCase() === "HOHOYKS";
 
         // Выбираем правильный divine предмет
@@ -356,6 +363,7 @@ export const useGameStore = create<GameStore>()(
 
         const divineResult: SpinResult = {
           item: divineItem,
+          spinIndex: currentPlayer.currentSpinIndex,
           timestamp: Date.now(),
         };
 
@@ -395,6 +403,7 @@ export const useGameStore = create<GameStore>()(
             showVictoryScreen: false,
             currentSpin: firstSpin,
             specialMessage: null,
+            luckMessage: null,
             showBonusSpin: false,
             bonusSpinActive: false,
           });
@@ -409,8 +418,8 @@ export const useGameStore = create<GameStore>()(
         // Бонусная крутка активна - можно крутить
         if (bonusSpinActive) return true;
 
-        // KLENKO всегда может крутить (даже в минусе)
-        if (currentPlayer.nickname.toUpperCase() === "KLENKO") return true;
+        // Klenkozarashi всегда может крутить (даже в минусе)
+        if (currentPlayer.nickname.toUpperCase() === "KLENKOZARASHI") return true;
 
         // HOHOYKS с бесконечными крутками
         if (currentPlayer.hasInfinitySpin) return true;

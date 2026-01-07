@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import type { SpinItem as SpinItemType } from "@/types/spin";
 import { RARITY_CONFIG } from "@/types/spin";
 import { cn } from "@/lib/utils";
@@ -74,18 +75,36 @@ export function SpinItemCard({
       />
 
       {/* Emoji/Image */}
-      <span className={cn(
-        emojiSizes[size],
-        "relative z-10 drop-shadow-lg transition-opacity",
-        showDetails && "group-hover:opacity-0 pointer-events-none"
-      )}>
-        {item.image}
-      </span>
+      {item.imageUrl ? (
+        <div className={cn(
+          "relative z-10 drop-shadow-lg transition-opacity",
+          showDetails && "group-hover:opacity-0 pointer-events-none",
+          size === "sm" && "w-14 h-14",
+          size === "md" && "w-20 h-20",
+          size === "lg" && "w-28 h-28"
+        )}>
+          <Image
+            src={item.imageUrl}
+            alt={item.name}
+            fill
+            className="object-contain"
+            sizes="(max-width: 768px) 80px, 112px"
+          />
+        </div>
+      ) : (
+        <span className={cn(
+          emojiSizes[size],
+          "relative z-10 drop-shadow-lg transition-opacity",
+          showDetails && "group-hover:opacity-0 pointer-events-none"
+        )}>
+          {item.image}
+        </span>
+      )}
 
       {/* Rarity indicator */}
       <div
         className={cn(
-          "absolute bottom-1 left-1 right-1 text-center text-[10px] font-bold uppercase tracking-wider py-0.5 rounded bg-black/30 transition-opacity",
+          "absolute bottom-1 left-1 right-1 z-20 text-center text-[10px] font-bold uppercase tracking-wider py-0.5 rounded bg-black/50 transition-opacity",
           showDetails && "group-hover:opacity-0 pointer-events-none"
         )}
         style={{ color: config.color }}

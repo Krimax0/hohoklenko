@@ -5,7 +5,8 @@ export interface SpinItem {
   name: string;
   description: string;
   rarity: Rarity;
-  image: string;
+  image: string; // emoji
+  imageUrl?: string; // путь к картинке (например "/images/coal.png")
   color: string;
   glowColor: string;
   sound?: string;

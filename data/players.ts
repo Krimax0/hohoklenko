@@ -31,14 +31,14 @@ export interface PlayerInfo {
 // Конфигурация игроков с индивидуальными шансами
 // ========================================
 export const PLAYERS: Record<string, PlayerInfo> = {
-  KLENKO: {
+  KLENKOZARASHI: {
     id: "klenko",
-    nickname: "KLENKO",
+    nickname: "Klenkozarashi",
     avatar: "🎅",
     maxSpins: 30, // Может уходить в минус (тролль механика)
     baseMaxSpins: 30,
     chances: {
-      // KLENKO - "невезучий" персонаж, больше угля
+      // Klenkozarashi - "невезучий" персонаж, больше угля
       common: 39.5,   // 39.5% - много угля
       uncommon: 25,   // 25%
       rare: 18,       // 18%
@@ -118,30 +118,30 @@ const selectRandomRarity = (
   // Проверяем, собрана ли коллекция игрока
   const collectionComplete = isCollectionComplete(collectedItemIds, nickname);
 
-  // Для HOHOYKS после 40 круток пересчитываем шансы без common и uncommon
+  // Для HOHOYKS после 40 круток сильно уменьшаем шансы common и uncommon (в 10 раз)
   let adjustedChances = { ...chances };
   if (lowRaritiesRemoved && nickname.toUpperCase() === "HOHOYKS") {
-    const removedChance = chances.common + chances.uncommon;
-    const remainingRarities = ["rare", "epic", "legendary", "mythic", "divine"];
-    const totalRemaining = remainingRarities.reduce((sum, r) => sum + chances[r], 0);
+    const commonReduction = chances.common * 0.9; // Уменьшаем на 90%
+    const uncommonReduction = chances.uncommon * 0.9; // Уменьшаем на 90%
+    const totalReduction = commonReduction + uncommonReduction;
 
-    // Перераспределяем шансы пропорционально
-    adjustedChances = { ...chances };
-    remainingRarities.forEach(rarity => {
-      adjustedChances[rarity] = (chances[rarity] / totalRemaining) * (100);
+    // Новые шансы для common/uncommon (10% от оригинала)
+    adjustedChances.common = chances.common * 0.1;
+    adjustedChances.uncommon = chances.uncommon * 0.1;
+
+    // Перераспределяем освободившиеся шансы на редкие и выше пропорционально
+    const higherRarities: Rarity[] = ["rare", "epic", "legendary", "mythic"];
+    const totalHigher = higherRarities.reduce((sum, r) => sum + chances[r], 0);
+
+    higherRarities.forEach(rarity => {
+      const proportion = chances[rarity] / totalHigher;
+      adjustedChances[rarity] = chances[rarity] + (totalReduction * proportion);
     });
-    adjustedChances.common = 0;
-    adjustedChances.uncommon = 0;
   }
 
   for (const rarity of rarities) {
     // Пропускаем божественную редкость если коллекция не собрана
     if (rarity === "divine" && !collectionComplete) {
-      continue;
-    }
-
-    // Пропускаем низкие редкости если они удалены
-    if (lowRaritiesRemoved && (rarity === "common" || rarity === "uncommon")) {
       continue;
     }
 
@@ -152,7 +152,7 @@ const selectRandomRarity = (
   }
 
   // Fallback
-  return lowRaritiesRemoved ? "rare" : "common";
+  return "common";
 };
 
 /**
@@ -168,8 +168,8 @@ const selectRandomItem = (rarity: Rarity, nickname: string, hellMode: boolean = 
 /**
  * Генерирует список предметов для визуального отображения на барабане
  * с победным предметом на нужной позиции
- * @param lowRaritiesRemoved - для HOHOYKS после 40 круток убираются common и uncommon
- * @param hellMode - адский режим для KLENKO
+ * @param lowRaritiesRemoved - для HOHOYKS после 40 круток сильно снижаются шансы common и uncommon
+ * @param hellMode - адский режим для Klenkozarashi
  */
 const generateSpinItems = (
   winningItem: SpinItem,
@@ -182,11 +182,6 @@ const generateSpinItems = (
   const items: SpinItem[] = [];
   const playerItems = getPlayerItems(nickname, hellMode).filter(item => item.rarity !== "divine");
 
-  // Для HOHOYKS после 40 круток убираем низкие редкости
-  const availableItems = lowRaritiesRemoved && nickname.toUpperCase() === "HOHOYKS"
-    ? playerItems.filter(item => item.rarity !== "common" && item.rarity !== "uncommon")
-    : playerItems;
-
   for (let i = 0; i < totalItems; i++) {
     if (i === winningPosition) {
       items.push(winningItem);
@@ -196,36 +191,40 @@ const generateSpinItems = (
       let pool: SpinItem[];
 
       if (lowRaritiesRemoved && nickname.toUpperCase() === "HOHOYKS") {
-        // После 40 круток только редкие и выше
-        if (rand < 0.4) {
-          pool = availableItems.filter(item => item.rarity === "rare");
-        } else if (rand < 0.7) {
-          pool = availableItems.filter(item => item.rarity === "epic");
-        } else if (rand < 0.9) {
-          pool = availableItems.filter(item => item.rarity === "legendary");
+        // После 40 круток - сильно уменьшенный шанс common/uncommon (5% каждый)
+        if (rand < 0.05) {
+          pool = playerItems.filter(item => item.rarity === "common");
+        } else if (rand < 0.10) {
+          pool = playerItems.filter(item => item.rarity === "uncommon");
+        } else if (rand < 0.45) {
+          pool = playerItems.filter(item => item.rarity === "rare");
+        } else if (rand < 0.75) {
+          pool = playerItems.filter(item => item.rarity === "epic");
+        } else if (rand < 0.92) {
+          pool = playerItems.filter(item => item.rarity === "legendary");
         } else {
-          pool = availableItems.filter(item => item.rarity === "mythic");
+          pool = playerItems.filter(item => item.rarity === "mythic");
         }
       } else {
         // Обычное распределение
         if (rand < 0.5) {
-          pool = availableItems.filter(item => item.rarity === "common");
+          pool = playerItems.filter(item => item.rarity === "common");
         } else if (rand < 0.75) {
-          pool = availableItems.filter(item => item.rarity === "uncommon");
+          pool = playerItems.filter(item => item.rarity === "uncommon");
         } else if (rand < 0.9) {
-          pool = availableItems.filter(item => item.rarity === "rare");
+          pool = playerItems.filter(item => item.rarity === "rare");
         } else if (rand < 0.96) {
-          pool = availableItems.filter(item => item.rarity === "epic");
+          pool = playerItems.filter(item => item.rarity === "epic");
         } else if (rand < 0.99) {
-          pool = availableItems.filter(item => item.rarity === "legendary");
+          pool = playerItems.filter(item => item.rarity === "legendary");
         } else {
-          pool = availableItems.filter(item => item.rarity === "mythic");
+          pool = playerItems.filter(item => item.rarity === "mythic");
         }
       }
 
       // Если пул пустой, берем любой доступный предмет
       if (pool.length === 0) {
-        pool = availableItems;
+        pool = playerItems;
       }
 
       items.push(pool[Math.floor(Math.random() * pool.length)]);
@@ -239,7 +238,7 @@ const generateSpinItems = (
  * Генерирует случайный спин для игрока на основе его индивидуальных шансов
  * Принимает массив ID собранных предметов для проверки доступности божественной редкости
  * @param lowRaritiesRemoved - для HOHOYKS после 40 круток убираются common и uncommon
- * @param hellMode - адский режим для KLENKO
+ * @param hellMode - адский режим для Klenkozarashi
  * @param guaranteedDivine - гарантированный божественный предмет (на 200-й крутке)
  */
 export const generateRandomSpin = (
@@ -316,8 +315,9 @@ export const hasSpinsRemaining = (nickname: string, currentSpinIndex: number): b
 
 /**
  * Получить отформатированные шансы для отображения в UI
+ * @param lowRaritiesRemoved - для HOHOYKS после 40 круток сильно снижаются шансы common и uncommon
  */
-export const getFormattedChances = (nickname: string): { rarity: Rarity; name: string; chance: number }[] => {
+export const getFormattedChances = (nickname: string, lowRaritiesRemoved: boolean = false): { rarity: Rarity; name: string; chance: number }[] => {
   const player = getPlayerInfo(nickname);
   if (!player) return [];
 
@@ -333,9 +333,28 @@ export const getFormattedChances = (nickname: string): { rarity: Rarity; name: s
 
   const rarities: Rarity[] = ["common", "uncommon", "rare", "epic", "legendary", "mythic", "divine"];
 
+  // Рассчитываем скорректированные шансы для HOHOYKS после 40 круток
+  let adjustedChances = { ...player.chances };
+  if (lowRaritiesRemoved && nickname.toUpperCase() === "HOHOYKS") {
+    const commonReduction = player.chances.common * 0.9;
+    const uncommonReduction = player.chances.uncommon * 0.9;
+    const totalReduction = commonReduction + uncommonReduction;
+
+    adjustedChances.common = player.chances.common * 0.1;
+    adjustedChances.uncommon = player.chances.uncommon * 0.1;
+
+    const higherRarities: Rarity[] = ["rare", "epic", "legendary", "mythic"];
+    const totalHigher = higherRarities.reduce((sum, r) => sum + player.chances[r], 0);
+
+    higherRarities.forEach(rarity => {
+      const proportion = player.chances[rarity] / totalHigher;
+      adjustedChances[rarity] = player.chances[rarity] + (totalReduction * proportion);
+    });
+  }
+
   return rarities.map((rarity) => ({
     rarity,
     name: rarityNames[rarity],
-    chance: player.chances[rarity],
+    chance: Math.round(adjustedChances[rarity] * 100) / 100, // Округляем до 2 знаков
   }));
 };
