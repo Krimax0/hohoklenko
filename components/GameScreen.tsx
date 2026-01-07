@@ -9,6 +9,7 @@ import { SpinWheel } from "@/components/spin/SpinWheel";
 import { VictoryScreen } from "@/components/spin/VictoryScreen";
 import { Inventory } from "@/components/spin/Inventory";
 import { SpecialMessageModal } from "@/components/spin/SpecialMessageModal";
+import { FinalScreen } from "@/components/FinalScreen";
 import { Snowfall } from "@/components/effects/Snowfall";
 import Aurora from "@/components/Aurora";
 import { useGameStore } from "@/stores/gameStore";
@@ -23,6 +24,7 @@ const KrutkaIcon = ({ size = 24 }: { size?: number }) => (
 export function GameScreen() {
   const [showInventory, setShowInventory] = useState(false);
   const [showChances, setShowChances] = useState(false);
+  const [showFinalScreen, setShowFinalScreen] = useState(false);
   const [autoMode, setAutoMode] = useState(false);
   const autoTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -43,6 +45,7 @@ export function GameScreen() {
     logout,
     resetPlayer,
     hasMoreSpins,
+    debugGrantDivine,
   } = useGameStore();
 
   // Проверяем есть ли крутки
@@ -309,6 +312,17 @@ export function GameScreen() {
             >
               <span className="text-xl md:text-2xl">🚪</span>
             </Button>
+
+            {/* DEBUG: Кнопка выдачи божественного предмета */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="p-3 h-auto w-auto rounded-full bg-yellow-500/20 hover:bg-yellow-500/40 border border-yellow-500/50 hover:scale-110 active:scale-95 transition-all"
+              onClick={debugGrantDivine}
+              title="DEBUG: Выдать Divine"
+            >
+              <span className="text-xl md:text-2xl">⚡</span>
+            </Button>
           </div>
         </div>
       </header>
@@ -358,6 +372,46 @@ export function GameScreen() {
 
       {/* Main content */}
       <main className="flex-1 flex flex-col items-center justify-center px-4 py-8 relative z-10">
+        {/* Кнопка открытия божественного подарка */}
+        {currentPlayer.inventory.some(r => r.item.rarity === "divine") && (
+          <motion.div
+            className="w-full max-w-md mb-4"
+            initial={{ opacity: 0, y: -20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.5, ease: "backOut" }}
+          >
+            <motion.button
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500 text-white font-bold text-xl shadow-2xl border-2 border-white/30 flex items-center justify-center gap-3 cursor-pointer"
+              animate={{
+                boxShadow: [
+                  "0 0 20px rgba(168, 85, 247, 0.5), 0 0 40px rgba(236, 72, 153, 0.3)",
+                  "0 0 30px rgba(168, 85, 247, 0.8), 0 0 60px rgba(236, 72, 153, 0.5)",
+                  "0 0 20px rgba(168, 85, 247, 0.5), 0 0 40px rgba(236, 72, 153, 0.3)",
+                ],
+                scale: [1, 1.02, 1],
+              }}
+              transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowFinalScreen(true)}
+            >
+              <motion.span
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY }}
+              >
+                🎁
+              </motion.span>
+              <span>ОТКРЫТЬ БОЖЕСТВЕННЫЙ ПОДАРОК</span>
+              <motion.span
+                animate={{ rotate: [0, -10, 10, 0] }}
+                transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY }}
+              >
+                ✨
+              </motion.span>
+            </motion.button>
+          </motion.div>
+        )}
+
         {/* Progress bar */}
         <div className="w-full max-w-md mb-6">
           <div className="flex items-center justify-between mb-2">
@@ -580,6 +634,13 @@ export function GameScreen() {
         onClose={closeSpecialMessage}
         showBonusButton={showBonusSpin}
         onBonusClick={handleBonusSpinClick}
+      />
+
+      {/* Final Screen */}
+      <FinalScreen
+        playerName={currentPlayer.nickname}
+        isOpen={showFinalScreen}
+        onClose={() => setShowFinalScreen(false)}
       />
     </div>
   );

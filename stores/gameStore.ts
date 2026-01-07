@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { SpinResult, ScriptedSpin, SpinItem } from "@/types/spin";
 import { getPlayerInfo, generateRandomSpin, hasSpinsRemaining } from "@/data/players";
-import { HOHOYKS_SECRET_LEGENDARY, KLENKO_HELLISH_ITEMS } from "@/data/items";
+import { HOHOYKS_SECRET_LEGENDARY, KLENKO_HELLISH_ITEMS, KLENKO_DIVINE_ITEM, HOHOYKS_DIVINE_ITEM, KLENKO_HELLISH_DIVINE_ITEM } from "@/data/items";
 import type { SpecialMessage } from "./specialMechanics";
 import {
   shouldShowLuckMessage,
@@ -333,6 +333,41 @@ export const useGameStore = create<GameStore>()(
             ...currentPlayer,
             inventory: transformedInventory,
           },
+        });
+      },
+
+      // DEBUG: Принудительно выдать божественный предмет
+      debugGrantDivine: () => {
+        const { currentPlayer } = get();
+        if (!currentPlayer) return;
+
+        const isKlenko = currentPlayer.nickname.toUpperCase() === "KLENKO";
+        const isHohoyks = currentPlayer.nickname.toUpperCase() === "HOHOYKS";
+
+        // Выбираем правильный divine предмет
+        let divineItem: SpinItem;
+        if (isKlenko) {
+          divineItem = currentPlayer.hellModeActive ? KLENKO_HELLISH_DIVINE_ITEM : KLENKO_DIVINE_ITEM;
+        } else if (isHohoyks) {
+          divineItem = HOHOYKS_DIVINE_ITEM;
+        } else {
+          return;
+        }
+
+        const divineResult: SpinResult = {
+          item: divineItem,
+          timestamp: Date.now(),
+        };
+
+        const updatedInventory = [...currentPlayer.inventory, divineResult];
+
+        set({
+          currentPlayer: {
+            ...currentPlayer,
+            inventory: updatedInventory,
+          },
+          lastResult: divineResult,
+          showVictoryScreen: true,
         });
       },
 

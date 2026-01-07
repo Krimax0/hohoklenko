@@ -158,6 +158,11 @@ export const HOHOYKS_DIVINE: SpinItem[] = [
   createItem("hohoyks_minecraft_key", "🎁 Ключ Minecraft для HOHOYKS", "Особый подарок от создателя! Лицензия Minecraft Java Edition", "divine", "🔑"),
 ];
 
+// Отдельные divine предметы для прямого доступа
+export const KLENKO_DIVINE_ITEM: SpinItem = KLENKO_DIVINE[0];
+export const HOHOYKS_DIVINE_ITEM: SpinItem = HOHOYKS_DIVINE[0];
+export const KLENKO_HELLISH_DIVINE_ITEM: SpinItem = KLENKO_HELLISH_DIVINE[0];
+
 // Полные коллекции игроков (включая божественные)
 export const KLENKO_ALL_ITEMS: SpinItem[] = [...KLENKO_ITEMS, ...KLENKO_DIVINE];
 export const HOHOYKS_ALL_ITEMS: SpinItem[] = [...HOHOYKS_ITEMS, ...HOHOYKS_DIVINE];
