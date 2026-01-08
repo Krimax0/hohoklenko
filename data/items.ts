@@ -118,10 +118,10 @@ export const HOHOYKS_ITEMS: SpinItem[] = [
   createItem("hohoyks_gingerbread", "Пряничный человечек", "Кричит 'НЕ МЕНЯ!' при виде молока", "uncommon", "🍪"),
 
   // Rare (4 предмета)
-  createItem("hohoyks_oksik_road", "Оксик на Машинке", "Бип-бип, с дороги!", "rare", "🦌", "/images/oksik_road.png"),
-  createItem("hohoyks_oksik_crochet", "Оксик-Рукодельник", "Свяжет игрушку за 5 минут!", "rare", "🧥", "/images/oksik_crochet.png"),
+  createItem("hohoyks_oksik_road", "Оксик на Машинке", "Скорость: максимальная. Направление: неизвестно", "rare", "🦌", "/images/oksik_road.png"),
+  createItem("hohoyks_oksik_crochet", "Оксик-Рукодельник", "Клубок ниток боится его", "rare", "🧥", "/images/oksik_crochet.png"),
   createItem("hohoyks_oksik_dance", "Танцующий Оксик", "Танцует даже когда музыки нет. Милоооо.", "rare", "🎵", "/images/oksik_dance.png"),
-  createItem("hohoyks_oksik_pixel", "Пиксельный Оксик", "Застрял в 2007 году. Ему там нравится.", "rare", "💫", "/images/oksik_pixel.png"),
+  createItem("hohoyks_oksik_pixel", "Пиксельный Оксик", "8 бит, 100% милоты", "rare", "💫", "/images/oksik_pixel.png"),
 
   // Epic (2 предмета)
   createItem("hohoyks_golden_bell", "Золотой Колокол", "Дин-дон, ты богат!", "epic", "🔔"),
