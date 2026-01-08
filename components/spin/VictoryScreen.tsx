@@ -25,6 +25,7 @@ interface VictoryScreenProps {
   onClose: () => void;
   hasMoreSpins: boolean;
   hellMode?: boolean;
+  isNewItem?: boolean; // Новый ли предмет (не было в инвентаре раньше)
 }
 
 export function VictoryScreen({
@@ -33,6 +34,7 @@ export function VictoryScreen({
   onClose,
   hasMoreSpins,
   hellMode = false,
+  isNewItem = false,
 }: VictoryScreenProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const config = RARITY_CONFIG[result.item.rarity];
@@ -289,7 +291,43 @@ export function VictoryScreen({
             </motion.div>
 
             {/* Item display */}
-            <div className="victory-item">
+            <div className="victory-item flex flex-col items-center">
+              {/* Бейдж "НОВЫЙ!" для новых предметов */}
+              {isNewItem && (
+                <motion.div
+                  className="mb-2 px-4 py-1 rounded-full font-bold text-sm uppercase tracking-wider"
+                  style={{
+                    background: hellMode
+                      ? "linear-gradient(135deg, #dc2626, #f97316)"
+                      : "linear-gradient(135deg, #22c55e, #10b981)",
+                    color: "white",
+                    boxShadow: hellMode
+                      ? "0 0 20px rgba(220, 38, 38, 0.6)"
+                      : "0 0 20px rgba(34, 197, 94, 0.6)",
+                  }}
+                  animate={{
+                    scale: [1, 1.1, 1],
+                    boxShadow: hellMode
+                      ? [
+                          "0 0 20px rgba(220, 38, 38, 0.6)",
+                          "0 0 30px rgba(220, 38, 38, 0.8)",
+                          "0 0 20px rgba(220, 38, 38, 0.6)",
+                        ]
+                      : [
+                          "0 0 20px rgba(34, 197, 94, 0.6)",
+                          "0 0 30px rgba(34, 197, 94, 0.8)",
+                          "0 0 20px rgba(34, 197, 94, 0.6)",
+                        ],
+                  }}
+                  transition={{
+                    duration: 1,
+                    repeat: Number.POSITIVE_INFINITY,
+                    ease: "easeInOut",
+                  }}
+                >
+                  ✨ НОВЫЙ! ✨
+                </motion.div>
+              )}
               <SpinItemCard item={result.item} isWinner size="lg" />
             </div>
 

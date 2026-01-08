@@ -64,6 +64,7 @@ export function GameScreen() {
     currentPlayer,
     isSpinning,
     lastResult,
+    isLastItemNew,
     showVictoryScreen,
     currentSpin,
     specialMessage,
@@ -664,6 +665,7 @@ export function GameScreen() {
           onClose={handleVictoryClose}
           hasMoreSpins={hasSpinsLeft}
           hellMode={hellModeActive}
+          isNewItem={isLastItemNew}
         />
       )}
 
