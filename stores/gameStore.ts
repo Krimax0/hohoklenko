@@ -36,6 +36,7 @@ interface GameState {
   currentPlayer: PlayerState | null;
   isSpinning: boolean;
   lastResult: SpinResult | null;
+  isLastItemNew: boolean; // Новый ли последний выбитый предмет (не было в инвентаре раньше)
   showVictoryScreen: boolean;
   currentSpin: ScriptedSpin | null;
   specialMessage: SpecialMessage | null; // Специальное сообщение для отображения (модальное окно)
@@ -71,6 +72,7 @@ export const useGameStore = create<GameStore>()(
       currentPlayer: null,
       isSpinning: false,
       lastResult: null,
+      isLastItemNew: false,
       showVictoryScreen: false,
       currentSpin: null,
       specialMessage: null,
@@ -182,6 +184,10 @@ export const useGameStore = create<GameStore>()(
       completeSpin: (result: SpinResult) => {
         const { currentPlayer } = get();
         if (!currentPlayer) return;
+
+        // Проверяем, новый ли это предмет (не было в инвентаре раньше)
+        const existingItemIds = currentPlayer.inventory.map(r => r.item.id);
+        const isLastItemNew = !existingItemIds.includes(result.item.id);
 
         const newSpinIndex = currentPlayer.currentSpinIndex + 1;
         const updatedInventory = [...currentPlayer.inventory, result];
@@ -358,6 +364,7 @@ export const useGameStore = create<GameStore>()(
         set({
           isSpinning: false,
           lastResult: result,
+          isLastItemNew,
           showVictoryScreen: true,
           currentPlayer: updatedPlayer,
           currentSpin: nextSpin,
