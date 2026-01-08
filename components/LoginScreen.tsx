@@ -64,7 +64,7 @@ export function LoginScreen() {
       return;
     }
 
-    // Пасхалка для KLENKOZARASHI
+    // Пасхалка для KLENKOZARASHI - вход только через KLENK0ZARASHI (с нулём)
     if (trimmedNick === "KLENKOZARASHI") {
       if (klenkoAttempts === 0) {
         setKlenkoAttempts(1);
@@ -72,13 +72,11 @@ export function LoginScreen() {
         shakeInput();
         return;
       }
-      if (klenkoAttempts === 1) {
-        setKlenkoAttempts(2);
-        setError("Хмм... Попробуйте заменить букву O на 0, вдруг сработает? 🤔");
-        setShowHint(true);
-        shakeInput();
-        return;
-      }
+      // После первой попытки всегда показываем подсказку
+      setError("Хмм... Попробуйте заменить букву O на 0, вдруг сработает? 🤔");
+      setShowHint(true);
+      shakeInput();
+      return;
     }
 
     const success = login(trimmedNick);
@@ -247,7 +245,7 @@ export function LoginScreen() {
           animate={{ opacity: [0.6, 1, 0.6] }}
           transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
         >
-          Новогодние Крутки 2025
+          Новогодние приколыыыыы 2025
         </motion.p>
       </div>
 
@@ -261,7 +259,7 @@ export function LoginScreen() {
             >
               🎅
             </motion.span>
-            Вход в Крутки
+            Вход в личный кабинет
             <motion.span
               animate={{ rotate: [0, -20, 20, 0] }}
               transition={{ duration: 0.5, repeat: Number.POSITIVE_INFINITY, repeatDelay: 2 }}
@@ -270,7 +268,7 @@ export function LoginScreen() {
             </motion.span>
           </CardTitle>
           <CardDescription className="text-amber-200/60">
-            Введите ваш никнейм для получения круток
+            Введи никнейм для входа
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -331,7 +329,7 @@ export function LoginScreen() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <KrutkaIcon size={24} /> КРУТИТЬ <KrutkaIcon size={24} />
+                 Попытка входа
               </motion.span>
             </Button>
           </form>

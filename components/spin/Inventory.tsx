@@ -8,6 +8,7 @@ import { ItemDetailModal } from "./ItemDetailModal";
 import type { SpinResult, Rarity, SpinItem } from "@/types/spin";
 import { RARITY_CONFIG } from "@/types/spin";
 import { useState } from "react";
+import { getPlayerAchievements } from "@/data/achievements";
 
 interface InventoryProps {
   items: SpinResult[];
@@ -16,9 +17,10 @@ interface InventoryProps {
   playerNickname?: string;
   hellMode?: boolean;
   lowRaritiesRemoved?: boolean;
+  unlockedAchievements?: string[];
 }
 
-type TabType = "inventory" | "collection";
+type TabType = "inventory" | "collection" | "achievements";
 
 const RARITY_ORDER: Rarity[] = [
   "divine",
@@ -30,10 +32,14 @@ const RARITY_ORDER: Rarity[] = [
   "common",
 ];
 
-export function Inventory({ items, isOpen, onClose, playerNickname = "Klenkozarashi", hellMode = false, lowRaritiesRemoved = false }: InventoryProps) {
+export function Inventory({ items, isOpen, onClose, playerNickname = "Klenkozarashi", hellMode = false, lowRaritiesRemoved = false, unlockedAchievements = [] }: InventoryProps) {
   const [selectedRarity, setSelectedRarity] = useState<Rarity | "all">("all");
   const [activeTab, setActiveTab] = useState<TabType>("inventory");
   const [selectedItem, setSelectedItem] = useState<SpinItem | null>(null);
+
+  // Получить достижения для этого игрока
+  const playerAchievements = getPlayerAchievements(playerNickname);
+  const unlockedCount = playerAchievements.filter(a => unlockedAchievements.includes(a.id)).length;
 
   // Group items by rarity
   const groupedItems = items.reduce((acc, result) => {
@@ -143,6 +149,18 @@ export function Inventory({ items, isOpen, onClose, playerNickname = "Klenkozara
                 >
                   {hellMode ? "💀 Книга тьмы" : "📚 Коллекция"}
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`px-6 py-2 rounded-full text-sm font-bold hover:scale-105 active:scale-95 transition-all ${
+                    activeTab === "achievements"
+                      ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-white"
+                      : "bg-white/10 text-white hover:bg-white/20"
+                  }`}
+                  onClick={() => setActiveTab("achievements")}
+                >
+                  🏆 Достижения ({unlockedCount}/{playerAchievements.length})
+                </Button>
               </div>
 
               {/* Rarity filters - только для инвентаря */}
@@ -226,9 +244,89 @@ export function Inventory({ items, isOpen, onClose, playerNickname = "Klenkozara
                       ))}
                   </motion.div>
                 )
-              ) : (
+              ) : activeTab === "collection" ? (
                 // Коллекция
                 <Collection inventory={items} playerNickname={playerNickname} hellMode={hellMode} lowRaritiesRemoved={lowRaritiesRemoved} />
+              ) : (
+                // Достижения
+                <div className="space-y-4">
+                  {/* Полученные достижения */}
+                  <div>
+                    <h3 className="text-lg font-bold text-green-400 mb-3 flex items-center gap-2">
+                      <span>✅</span> Полученные ({unlockedCount})
+                    </h3>
+                    {unlockedCount === 0 ? (
+                      <p className="text-gray-500 text-center py-4">Пока нет достижений. Крутите!</p>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {playerAchievements
+                          .filter(a => unlockedAchievements.includes(a.id))
+                          .map((achievement, index) => (
+                            <motion.div
+                              key={achievement.id}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: index * 0.05 }}
+                              className="p-4 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/30"
+                            >
+                              <div className="flex items-start gap-3">
+                                <span className="text-3xl">{achievement.emoji}</span>
+                                <div className="flex-1">
+                                  <h4 className="font-bold text-white">{achievement.name}</h4>
+                                  <p className="text-sm text-amber-200">{achievement.description}</p>
+                                  <p className="text-xs text-gray-400 mt-1">{achievement.requirement}</p>
+                                </div>
+                                <span className="text-2xl">🏆</span>
+                              </div>
+                            </motion.div>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Неполученные достижения */}
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-400 mb-3 flex items-center gap-2">
+                      <span>🔒</span> Не получены ({playerAchievements.length - unlockedCount})
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {playerAchievements
+                        .filter(a => !unlockedAchievements.includes(a.id))
+                        .map((achievement, index) => (
+                          <motion.div
+                            key={achievement.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className={`p-4 rounded-xl border opacity-60 ${
+                              achievement.hidden
+                                ? "bg-purple-900/30 border-purple-700/50"
+                                : "bg-gray-800/50 border-gray-700/50"
+                            }`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <span className="text-3xl grayscale">
+                                {achievement.hidden ? "❓" : achievement.emoji}
+                              </span>
+                              <div className="flex-1">
+                                <h4 className="font-bold text-gray-300">
+                                  {achievement.hidden ? "???" : achievement.name}
+                                </h4>
+                                <p className="text-sm text-gray-500">
+                                  {achievement.hidden ? "Секретное достижение" : achievement.description}
+                                </p>
+                                <p className="text-xs text-amber-400/70 mt-1 flex items-center gap-1">
+                                  <span>{achievement.hidden ? "🤫" : "📋"}</span>
+                                  {achievement.hidden ? "Узнаешь, когда получишь..." : achievement.requirement}
+                                </p>
+                              </div>
+                              <span className="text-2xl">{achievement.hidden ? "🤫" : "🔒"}</span>
+                            </div>
+                          </motion.div>
+                        ))}
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
 

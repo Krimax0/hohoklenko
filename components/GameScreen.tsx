@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { gsap } from "gsap";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { VictoryScreen } from "@/components/spin/VictoryScreen";
 import { Inventory } from "@/components/spin/Inventory";
 import { SpecialMessageModal } from "@/components/spin/SpecialMessageModal";
 import { LuckToast } from "@/components/spin/LuckToast";
+import { AchievementToast } from "@/components/AchievementToast";
 import { FinalScreen } from "@/components/FinalScreen";
 import { Snowfall } from "@/components/effects/Snowfall";
 import Aurora from "@/components/Aurora";
@@ -35,11 +36,28 @@ const getDisplayName = (playerName: string): string => {
   return displayNames[playerName.toUpperCase()] || playerName;
 };
 
+// Пасхалки при клике на аватар
+const avatarMessages: Record<string, string[]> = {
+  KLENKOZARASHI: [
+    "Уля передаёт привет! 💕",
+    "Уля скучает по тебе! 🥺",
+    "Уля говорит: ты лучшая! ✨",
+    "Уля ждёт тебя! 💖",
+  ],
+  HOHOYKS: [
+    "Аня передаёт привет! 💕",
+    "Аня скучает по тебе! 🥺",
+    "Аня говорит: ты супер! ✨",
+    "Аня ждёт тебя! 💖",
+  ],
+};
+
 export function GameScreen() {
   const [showInventory, setShowInventory] = useState(false);
   const [showChances, setShowChances] = useState(false);
   const [showFinalScreen, setShowFinalScreen] = useState(false);
   const [autoMode, setAutoMode] = useState(false);
+  const [avatarMessage, setAvatarMessage] = useState<string | null>(null);
   const autoTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const {
@@ -51,16 +69,29 @@ export function GameScreen() {
     specialMessage,
     luckMessage,
     showBonusSpin,
+    newAchievement,
     startSpin,
     completeSpin,
     closeVictoryScreen,
     closeSpecialMessage,
     closeLuckMessage,
+    closeAchievementNotification,
     activateBonusSpin,
     transformToHellItems,
     logout,
     hasMoreSpins,
   } = useGameStore();
+
+  // Обработчик клика на аватар
+  const handleAvatarClick = () => {
+    if (!currentPlayer) return;
+    const messages = avatarMessages[currentPlayer.nickname.toUpperCase()] || [];
+    if (messages.length > 0) {
+      const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+      setAvatarMessage(randomMessage);
+      setTimeout(() => setAvatarMessage(null), 2500);
+    }
+  };
 
   // Проверяем есть ли крутки
   const hasSpinsLeft = hasMoreSpins();
@@ -235,11 +266,13 @@ export function GameScreen() {
       <header className="game-header relative z-10 p-4 md:p-6 pt-12">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           {/* Player info */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 relative">
             <motion.div
-              className={`w-12 h-12 md:w-16 md:h-16 rounded-full overflow-hidden border-2 ${hellModeActive ? "border-red-500" : "border-amber-400"}`}
+              className={`w-12 h-12 md:w-16 md:h-16 rounded-full overflow-hidden border-2 cursor-pointer ${hellModeActive ? "border-red-500" : "border-amber-400"} hover:scale-110 transition-transform`}
               animate={{ scale: [1, 1.05, 1] }}
               transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
+              onClick={handleAvatarClick}
+              whileTap={{ scale: 0.95 }}
             >
               <Image
                 src={currentPlayer.nickname === "Klenkozarashi" ? "/klenko.jpg" : "/hohoyks.jpg"}
@@ -249,6 +282,19 @@ export function GameScreen() {
                 className="w-full h-full object-cover"
               />
             </motion.div>
+            {/* Пасхалка - сообщение при клике на аватар */}
+            <AnimatePresence>
+              {avatarMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.8 }}
+                  className="absolute left-0 top-full mt-2 px-4 py-2 bg-pink-500/90 backdrop-blur-sm rounded-xl text-white text-sm font-medium whitespace-nowrap shadow-lg z-50"
+                >
+                  {avatarMessage}
+                </motion.div>
+              )}
+            </AnimatePresence>
             <div>
               <h2 className={`text-xl md:text-2xl font-bold ${hellModeActive ? "text-red-400" : "text-white"}`}>
                 {getDisplayName(currentPlayer.nickname)}
@@ -629,6 +675,7 @@ export function GameScreen() {
         playerNickname={currentPlayer.nickname}
         hellMode={hellModeActive}
         lowRaritiesRemoved={currentPlayer.lowRaritiesRemoved}
+        unlockedAchievements={currentPlayer.achievements || []}
       />
 
       {/* Special Message Modal */}
@@ -646,6 +693,12 @@ export function GameScreen() {
         isVisible={luckMessage !== null}
         onClose={closeLuckMessage}
         autoHideDelay={3500}
+      />
+
+      {/* Achievement Toast (уведомление о новом достижении) */}
+      <AchievementToast
+        achievement={newAchievement}
+        onClose={closeAchievementNotification}
       />
 
       {/* Final Screen */}

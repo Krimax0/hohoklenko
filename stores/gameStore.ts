@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 import type { SpinResult, ScriptedSpin, SpinItem } from "@/types/spin";
 import { getPlayerInfo, generateRandomSpin, hasSpinsRemaining } from "@/data/players";
 import { HOHOYKS_SECRET_LEGENDARY, KLENKO_HELLISH_ITEMS, KLENKO_DIVINE_ITEM, HOHOYKS_DIVINE_ITEM, KLENKO_HELLISH_DIVINE_ITEM } from "@/data/items";
+import { type Achievement, getAchievementById, COAL_ITEM_IDS, MISA_ITEM_IDS, OKSIK_ITEM_IDS } from "@/data/achievements";
 import type { SpecialMessage } from "./specialMechanics";
 import {
   shouldShowLuckMessage,
@@ -26,6 +27,8 @@ interface PlayerState {
   hasInfinitySpin: boolean; // Получил ли HOHOYKS крутку бесконечности
   hellModeActive: boolean; // Активирован ли адский режим для Klenkozarashi
   lowRaritiesRemoved: boolean; // Удалены ли низкие редкости для HOHOYKS
+  achievements: string[]; // ID полученных достижений
+  consecutiveCoal: number; // Счётчик углей подряд (для достижения "Невезучая")
 }
 
 interface GameState {
@@ -39,6 +42,7 @@ interface GameState {
   luckMessage: string | null; // Сообщение удачи для toast (не блокирует игру)
   showBonusSpin: boolean; // Показать ли бонусную крутку для HOHOYKS
   bonusSpinActive: boolean; // Активна ли бонусная крутка (можно крутить даже без hasMoreSpins)
+  newAchievement: Achievement | null; // Новое полученное достижение для показа
 }
 
 interface GameStore extends GameState {
@@ -53,6 +57,7 @@ interface GameStore extends GameState {
   hasMoreSpins: () => boolean;
   closeSpecialMessage: () => void; // Закрыть специальное сообщение (модальное окно)
   closeLuckMessage: () => void; // Закрыть сообщение удачи (toast)
+  closeAchievementNotification: () => void; // Закрыть уведомление о достижении
   activateBonusSpin: () => void; // Активировать бонусную крутку для HOHOYKS
   transformToHellItems: () => void; // Превратить предметы Klenkozarashi в адские
   debugGrantDivine: () => void; // DEBUG: Принудительно выдать божественный предмет
@@ -72,6 +77,7 @@ export const useGameStore = create<GameStore>()(
       luckMessage: null,
       showBonusSpin: false,
       bonusSpinActive: false,
+      newAchievement: null,
 
       // Login action
       login: (nickname: string) => {
@@ -89,12 +95,15 @@ export const useGameStore = create<GameStore>()(
               hasInfinitySpin: false,
               hellModeActive: false,
               lowRaritiesRemoved: false,
+              achievements: [],
+              consecutiveCoal: 0,
             },
             currentSpin: firstSpin,
             specialMessage: null,
             luckMessage: null,
             showBonusSpin: false,
             bonusSpinActive: false,
+            newAchievement: null,
           });
           return true;
         }
@@ -114,6 +123,7 @@ export const useGameStore = create<GameStore>()(
           luckMessage: null,
           showBonusSpin: false,
           bonusSpinActive: false,
+          newAchievement: null,
         });
       },
 
@@ -181,9 +191,19 @@ export const useGameStore = create<GameStore>()(
         let hasInfinitySpin = currentPlayer.hasInfinitySpin;
         let hellModeActive = currentPlayer.hellModeActive;
         let lowRaritiesRemoved = currentPlayer.lowRaritiesRemoved;
+        let achievements = [...(currentPlayer.achievements || [])];
+        let consecutiveCoal = currentPlayer.consecutiveCoal || 0;
+        let newAchievement: Achievement | null = null;
 
         const isHohoyks = currentPlayer.nickname.toUpperCase() === "HOHOYKS";
         const isKlenko = currentPlayer.nickname.toUpperCase() === "KLENKOZARASHI";
+
+        // Проверка на уголь подряд (для достижения "Невезучая")
+        if (isKlenko && COAL_ITEM_IDS.includes(result.item.id)) {
+          consecutiveCoal++;
+        } else {
+          consecutiveCoal = 0;
+        }
 
         // ========================================
         // ЛОГИКА ДЛЯ HOHOYKS
@@ -232,6 +252,81 @@ export const useGameStore = create<GameStore>()(
           }
         }
 
+        // ========================================
+        // ПРОВЕРКА ДОСТИЖЕНИЙ
+        // ========================================
+        const collectedItemIds = updatedInventory.map(r => r.item.id);
+        const collectedRarities = new Set(updatedInventory.map(r => r.item.rarity));
+
+        // Хелпер для добавления достижения
+        const grantAchievement = (id: string) => {
+          if (!achievements.includes(id)) {
+            achievements.push(id);
+            newAchievement = getAchievementById(id) || null;
+          }
+        };
+
+        // === Общие достижения ===
+        // Первый раз
+        if (newSpinIndex === 1) {
+          grantAchievement("first_spin");
+        }
+        // Десяточка
+        if (newSpinIndex === 10) {
+          grantAchievement("ten_spins");
+        }
+        // Радуга (5 разных редкостей)
+        if (collectedRarities.size >= 5 && !achievements.includes("rainbow")) {
+          grantAchievement("rainbow");
+        }
+        // Божественный
+        if (result.item.rarity === "divine") {
+          grantAchievement("divine_drop");
+        }
+
+        // === Достижения для Ани ===
+        if (isKlenko) {
+          // Угольный Магнат (5 разных углей)
+          const coalCount = COAL_ITEM_IDS.filter(id => collectedItemIds.includes(id)).length;
+          if (coalCount >= 5 && !achievements.includes("coal_magnat")) {
+            grantAchievement("coal_magnat");
+          }
+          // Адский Турист
+          if (hellModeActive && !achievements.includes("hell_tourist")) {
+            grantAchievement("hell_tourist");
+          }
+          // Миса-коллекционер
+          const misaCount = MISA_ITEM_IDS.filter(id => collectedItemIds.includes(id)).length;
+          if (misaCount >= MISA_ITEM_IDS.length && !achievements.includes("misa_collector")) {
+            grantAchievement("misa_collector");
+          }
+          // Невезучая (3 угля подряд)
+          if (consecutiveCoal >= 3 && !achievements.includes("unlucky")) {
+            grantAchievement("unlucky");
+          }
+          // Неожиданно! (legendary в первых 10 крутках)
+          if (newSpinIndex <= 10 && result.item.rarity === "legendary" && !achievements.includes("unexpected_luck")) {
+            grantAchievement("unexpected_luck");
+          }
+        }
+
+        // === Достижения для Ули ===
+        if (isHohoyks) {
+          // Оксик-мания
+          const oksikCount = OKSIK_ITEM_IDS.filter(id => collectedItemIds.includes(id)).length;
+          if (oksikCount >= OKSIK_ITEM_IDS.length && !achievements.includes("oksik_mania")) {
+            grantAchievement("oksik_mania");
+          }
+          // Бесконечность
+          if (hasInfinitySpin && !achievements.includes("infinity")) {
+            grantAchievement("infinity");
+          }
+          // Везунчик (epic+ в первых 5 крутках)
+          if (newSpinIndex <= 5 && ["epic", "legendary", "mythic", "divine"].includes(result.item.rarity) && !achievements.includes("lucky")) {
+            grantAchievement("lucky");
+          }
+        }
+
         const updatedPlayer: PlayerState = {
           ...currentPlayer,
           currentSpinIndex: newSpinIndex,
@@ -239,10 +334,11 @@ export const useGameStore = create<GameStore>()(
           hasInfinitySpin,
           hellModeActive,
           lowRaritiesRemoved,
+          achievements,
+          consecutiveCoal,
         };
 
         // Генерируем следующий спин
-        const collectedItemIds = updatedInventory.map(r => r.item.id);
         const playerInfo = getPlayerInfo(currentPlayer.nickname);
 
         // Проверяем, будет ли следующая крутка 200-й (гарантированный divine)
@@ -269,6 +365,7 @@ export const useGameStore = create<GameStore>()(
           luckMessage,
           showBonusSpin,
           bonusSpinActive: false,
+          newAchievement,
         });
       },
 
@@ -285,6 +382,11 @@ export const useGameStore = create<GameStore>()(
       // Close luck message (toast)
       closeLuckMessage: () => {
         set({ luckMessage: null });
+      },
+
+      // Close achievement notification
+      closeAchievementNotification: () => {
+        set({ newAchievement: null });
       },
 
       // Activate bonus spin for HOHOYKS
@@ -397,6 +499,8 @@ export const useGameStore = create<GameStore>()(
               hasInfinitySpin: false,
               hellModeActive: false,
               lowRaritiesRemoved: false,
+              achievements: [],
+              consecutiveCoal: 0,
             },
             isSpinning: false,
             lastResult: null,
@@ -406,6 +510,7 @@ export const useGameStore = create<GameStore>()(
             luckMessage: null,
             showBonusSpin: false,
             bonusSpinActive: false,
+            newAchievement: null,
           });
         }
       },

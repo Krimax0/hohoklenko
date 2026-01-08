@@ -180,7 +180,7 @@ export function WelcomeScreen({ playerName, spinsCount, onContinue }: WelcomeScr
               exit={{ opacity: 0, y: -50, transition: { duration: 0.3 } }}
             >
               <h2 className="text-3xl md:text-5xl font-bold text-white mb-8">
-                ВАМ НАЧИСЛЕНО
+                ТЕБЕ НАЧИСЛЕНО
               </h2>
               <motion.div
                 className="spins-number relative inline-block"
@@ -205,7 +205,7 @@ export function WelcomeScreen({ playerName, spinsCount, onContinue }: WelcomeScr
                 </motion.span>
               </motion.div>
               <h3 className="text-4xl md:text-6xl font-black text-white mt-4 flex items-center justify-center gap-4">
-                КРУТОК! <KrutkaIcon size={48} />
+                КРУТОК!!!! <KrutkaIcon size={48} />
               </h3>
             </motion.div>
           )}
@@ -229,7 +229,7 @@ export function WelcomeScreen({ playerName, spinsCount, onContinue }: WelcomeScr
                 🎯
               </motion.div>
               <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
-                ВАША ЦЕЛЬ:
+                ТВОЯ ЦЕЛЬ:
               </h2>
               <motion.div
                 className="relative inline-block px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-600/30 via-amber-500/30 to-purple-600/30 border-2 border-amber-400/50"

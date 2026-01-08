@@ -516,7 +516,7 @@ export function FinalScreen({ playerName, isOpen, onClose }: FinalScreenProps) {
                     animate={{ opacity: [0.7, 1, 0.7] }}
                     transition={{ duration: 3, repeat: Infinity }}
                   >
-                    Пусть этот год станет самым лучшим в вашей жизни! ✨
+                    Пусть этот год станет самым лучшим!!!! ✨
                   </motion.p>
                   <motion.button
                     onClick={onClose}
