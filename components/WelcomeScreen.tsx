@@ -156,7 +156,7 @@ export function WelcomeScreen({ playerName, spinsCount, onContinue }: WelcomeScr
                 🎅
               </motion.div>
               <h1 className="text-4xl md:text-6xl font-black text-white mb-4">
-                    С НОВЫМ ГОДОМ!!!!
+                НУ ПРИВЕЕЕТ!!!!
               </h1>
               <motion.h2
                 className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-red-400 to-amber-400"
@@ -166,7 +166,7 @@ export function WelcomeScreen({ playerName, spinsCount, onContinue }: WelcomeScr
                 transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
                 style={{ backgroundSize: "200% 200%" }}
               >
-                {getDisplayName(playerName)}!
+                {getDisplayName(playerName)}!!
               </motion.h2>
             </motion.div>
           )}
@@ -180,7 +180,7 @@ export function WelcomeScreen({ playerName, spinsCount, onContinue }: WelcomeScr
               exit={{ opacity: 0, y: -50, transition: { duration: 0.3 } }}
             >
               <h2 className="text-3xl md:text-5xl font-bold text-white mb-8">
-                ТЕБЕ НАЧИСЛЕНО
+                СКОЛЬКО-СКОЛЬКО?!
               </h2>
               <motion.div
                 className="spins-number relative inline-block"
@@ -193,6 +193,7 @@ export function WelcomeScreen({ playerName, spinsCount, onContinue }: WelcomeScr
                 }}
                 transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY }}
               >
+                <span className="text-7xl md:text-9xl font-black text-white">ЦЕЛЫХ </span>
                 <span className="text-9xl md:text-[12rem] font-black text-transparent bg-clip-text bg-gradient-to-b from-amber-300 via-amber-500 to-amber-600">
                   {spinsCount}
                 </span>
@@ -205,7 +206,7 @@ export function WelcomeScreen({ playerName, spinsCount, onContinue }: WelcomeScr
                 </motion.span>
               </motion.div>
               <h3 className="text-4xl md:text-6xl font-black text-white mt-4 flex items-center justify-center gap-4">
-                КРУТОК!!!! <KrutkaIcon size={48} />
+                КРУТОК! НЕ ШУЧУ! <KrutkaIcon size={48} />
               </h3>
             </motion.div>
           )}
@@ -226,10 +227,10 @@ export function WelcomeScreen({ playerName, spinsCount, onContinue }: WelcomeScr
                 }}
                 transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
               >
-                🎯
+                📋
               </motion.div>
               <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
-                ТВОЯ ЦЕЛЬ:
+                ЗАДАЧКА НА ВЕЧЕР:
               </h2>
               <motion.div
                 className="relative inline-block px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-600/30 via-amber-500/30 to-purple-600/30 border-2 border-amber-400/50"
@@ -258,7 +259,7 @@ export function WelcomeScreen({ playerName, spinsCount, onContinue }: WelcomeScr
                 animate={{ scale: [1, 1.05, 1] }}
                 transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY }}
               >
-                ⚠️ Не у всех получается...
+                Spoiler: Не у всех получается... 💀
               </motion.p>
             </motion.div>
           )}
@@ -290,14 +291,14 @@ export function WelcomeScreen({ playerName, spinsCount, onContinue }: WelcomeScr
                 transition={{ duration: 3, repeat: Number.POSITIVE_INFINITY }}
                 style={{ backgroundSize: "200% 200%" }}
               >
-                РИСКНЁМ?
+                ПОГНАЛИ?!
               </motion.h1>
               <motion.p
                 className="text-2xl md:text-3xl text-amber-200/80 mb-8"
                 animate={{ opacity: [0.6, 1, 0.6] }}
                 transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
               >
-                Дед Мороз приготовил для вас сюрпризы...
+                Крутки сами себя не прокрутят! 🎰
               </motion.p>
 
               {/* Ready button */}
