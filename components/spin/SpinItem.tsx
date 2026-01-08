@@ -11,6 +11,7 @@ interface SpinItemProps {
   isWinner?: boolean;
   size?: "sm" | "md" | "lg";
   showDetails?: boolean;
+  isRevealed?: boolean; // Показывать ли иконку предмета (false = скрыто, видна только редкость)
 }
 
 export function SpinItemCard({
@@ -18,6 +19,7 @@ export function SpinItemCard({
   isWinner = false,
   size = "md",
   showDetails = false,
+  isRevealed = true,
 }: SpinItemProps) {
   const config = RARITY_CONFIG[item.rarity];
 
@@ -74,8 +76,18 @@ export function SpinItemCard({
         }}
       />
 
-      {/* Emoji/Image */}
-      {item.imageUrl ? (
+      {/* Emoji/Image - скрыто если isRevealed = false */}
+      {!isRevealed ? (
+        <span className={cn(
+          emojiSizes[size],
+          "relative z-10 drop-shadow-lg transition-opacity font-bold",
+          showDetails && "group-hover:opacity-0 pointer-events-none"
+        )}
+        style={{ color: config.color }}
+        >
+          ?
+        </span>
+      ) : item.imageUrl ? (
         <div className={cn(
           "relative z-10 drop-shadow-lg transition-opacity",
           showDetails && "group-hover:opacity-0 pointer-events-none",

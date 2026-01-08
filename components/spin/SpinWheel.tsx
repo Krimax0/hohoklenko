@@ -1,12 +1,13 @@
 "use client";
 
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { gsap } from "gsap";
 import { FastForward } from "lucide-react";
 import { SpinItemCard } from "./SpinItem";
 import { Button } from "@/components/ui/button";
 import { useTickSound } from "@/hooks/useTickSound";
+import { useGameStore } from "@/stores/gameStore";
 import type { ScriptedSpin, SpinResult } from "@/types/spin";
 import { RARITY_CONFIG } from "@/types/spin";
 
@@ -30,6 +31,12 @@ export function SpinWheel({ spin, isSpinning, onSpinComplete, fastMode = false, 
   const [hasSpun, setHasSpun] = useState(false);
   const [winnerRevealed, setWinnerRevealed] = useState(false);
   const { playTick } = useTickSound({ volume: 0.4 });
+
+  // Получаем список собранных предметов из инвентаря игрока
+  const currentPlayer = useGameStore((state) => state.currentPlayer);
+  const collectedItemIds = useMemo(() => {
+    return new Set(currentPlayer?.inventory?.map((r) => r.item.id) || []);
+  }, [currentPlayer?.inventory]);
 
   // Функция для мгновенного завершения
   const skipToEnd = useCallback(() => {
@@ -228,6 +235,7 @@ export function SpinWheel({ spin, isSpinning, onSpinComplete, fastMode = false, 
                 item={item}
                 isWinner={winnerRevealed && index === spin.winningIndex}
                 size="md"
+                isRevealed={collectedItemIds.has(item.id)}
               />
             </div>
           ))}
