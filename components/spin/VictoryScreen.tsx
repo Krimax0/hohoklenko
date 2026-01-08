@@ -9,7 +9,7 @@ import { SpinItemCard } from "./SpinItem";
 import { ConfettiEffect } from "@/components/effects/Confetti";
 import { ScreenShake } from "@/components/effects/ScreenShake";
 import { FloatingEmoji } from "@/components/effects/FloatingEmoji";
-import { useRewardSound } from "@/hooks/useRewardSound";
+import { useGlobalSound } from "@/contexts/SoundContext";
 import Lightning from "@/components/Lightning";
 import Iridescence from "@/components/Iridescence";
 import type { SpinResult } from "@/types/spin";
@@ -36,7 +36,7 @@ export function VictoryScreen({
 }: VictoryScreenProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const config = RARITY_CONFIG[result.item.rarity];
-  const { playRewardSound, stopLoop, isReady } = useRewardSound();
+  const { playRewardSound, stopLoop, isReady } = useGlobalSound();
 
   // Мемоизируем снежинки чтобы рандом не менялся при ре-рендерах
   const snowflakes = useMemo(() =>
