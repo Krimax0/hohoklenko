@@ -12,6 +12,16 @@ const KrutkaIcon = ({ size = 24 }: { size?: number }) => (
   <Image src="/krutka.png" alt="Крутка" width={size} height={size} className="inline-block" />
 );
 
+// Маппинг имён для отображения
+const displayNames: Record<string, string> = {
+  KLENKOZARASHI: "Аняяяяяяяя",
+  HOHOYKS: "Уляяяяяя",
+};
+
+const getDisplayName = (playerName: string): string => {
+  return displayNames[playerName.toUpperCase()] || playerName;
+};
+
 interface WelcomeScreenProps {
   playerName: string;
   spinsCount: number;
@@ -146,7 +156,7 @@ export function WelcomeScreen({ playerName, spinsCount, onContinue }: WelcomeScr
                 🎅
               </motion.div>
               <h1 className="text-4xl md:text-6xl font-black text-white mb-4">
-                С НОВЫМ ГОДОМ,
+                    С НОВЫМ ГОДОМ!!!!
               </h1>
               <motion.h2
                 className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-red-400 to-amber-400"
@@ -156,7 +166,7 @@ export function WelcomeScreen({ playerName, spinsCount, onContinue }: WelcomeScr
                 transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
                 style={{ backgroundSize: "200% 200%" }}
               >
-                {playerName}!
+                {getDisplayName(playerName)}!
               </motion.h2>
             </motion.div>
           )}

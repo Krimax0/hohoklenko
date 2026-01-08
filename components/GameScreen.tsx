@@ -5,6 +5,9 @@ import { motion } from "framer-motion";
 import { gsap } from "gsap";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { ShimmerButton } from "@/components/ui/shimmer-button";
+import { NumberTicker } from "@/components/ui/number-ticker";
+import { BorderBeam } from "@/components/ui/border-beam";
 import { SpinWheel } from "@/components/spin/SpinWheel";
 import { VictoryScreen } from "@/components/spin/VictoryScreen";
 import { Inventory } from "@/components/spin/Inventory";
@@ -21,6 +24,16 @@ import { RARITY_CONFIG } from "@/types/spin";
 const KrutkaIcon = ({ size = 24 }: { size?: number }) => (
   <Image src="/krutka.png" alt="Крутка" width={size} height={size} className="inline-block" />
 );
+
+// Маппинг имён для отображения
+const displayNames: Record<string, string> = {
+  KLENKOZARASHI: "Аняяяяяяяя",
+  HOHOYKS: "Уляяяяяя",
+};
+
+const getDisplayName = (playerName: string): string => {
+  return displayNames[playerName.toUpperCase()] || playerName;
+};
 
 export function GameScreen() {
   const [showInventory, setShowInventory] = useState(false);
@@ -46,9 +59,7 @@ export function GameScreen() {
     activateBonusSpin,
     transformToHellItems,
     logout,
-    resetPlayer,
     hasMoreSpins,
-    debugGrantDivine,
   } = useGameStore();
 
   // Проверяем есть ли крутки
@@ -240,7 +251,7 @@ export function GameScreen() {
             </motion.div>
             <div>
               <h2 className={`text-xl md:text-2xl font-bold ${hellModeActive ? "text-red-400" : "text-white"}`}>
-                {currentPlayer.nickname}
+                {getDisplayName(currentPlayer.nickname)}
                 {hellModeActive && <span className="ml-2">👹</span>}
               </h2>
               <p className={`text-sm ${hellModeActive ? "text-red-300/70" : "text-amber-200/70"} flex items-center gap-1`}>
@@ -299,32 +310,11 @@ export function GameScreen() {
             <Button
               variant="ghost"
               size="icon"
-              className={`p-3 h-auto w-auto rounded-full ${hellModeActive ? "bg-red-500/20 hover:bg-red-500/30 border-red-500/30" : "bg-green-500/20 hover:bg-green-500/30 border-green-500/30"} border hover:scale-110 active:scale-95 transition-all`}
-              onClick={resetPlayer}
-              title="Сбросить прогресс"
-            >
-              <span className="text-xl md:text-2xl">🔄</span>
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
               className="p-3 h-auto w-auto rounded-full bg-white/10 hover:bg-white/20 hover:scale-110 active:scale-95 transition-all"
               onClick={logout}
               title="Выйти"
             >
               <span className="text-xl md:text-2xl">🚪</span>
-            </Button>
-
-            {/* DEBUG: Кнопка выдачи божественного предмета */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="p-3 h-auto w-auto rounded-full bg-yellow-500/20 hover:bg-yellow-500/40 border border-yellow-500/50 hover:scale-110 active:scale-95 transition-all"
-              onClick={debugGrantDivine}
-              title="DEBUG: Выдать Divine"
-            >
-              <span className="text-xl md:text-2xl">⚡</span>
             </Button>
           </div>
         </div>
@@ -432,7 +422,7 @@ export function GameScreen() {
               }
             </span>
           </div>
-          <div className={`h-3 rounded-full ${hellModeActive ? "bg-red-950/50" : "bg-white/10"} relative overflow-visible`}>
+          <div className={`h-3 rounded-full ${hellModeActive ? "bg-red-950/50" : "bg-white/10"} relative overflow-hidden`}>
             <motion.div
               className={`h-full rounded-full absolute left-0 top-0 ${
                 hellModeActive
@@ -448,6 +438,13 @@ export function GameScreen() {
                   : `${(currentPlayer.currentSpinIndex / (playerInfo?.baseMaxSpins || 30)) * 100}%`
               }}
               transition={{ duration: 0.5, ease: "easeOut" }}
+            />
+            <BorderBeam
+              size={40}
+              duration={4}
+              colorFrom={hellModeActive ? "#ff4444" : "#fbbf24"}
+              colorTo={hellModeActive ? "#991b1b" : "#22c55e"}
+              borderWidth={2}
             />
           </div>
         </div>
@@ -495,15 +492,22 @@ export function GameScreen() {
         <div className="game-controls mt-8 flex flex-col items-center gap-4">
           {canSpin && !autoMode && (
             <div className="flex flex-col sm:flex-row items-center gap-3">
-              <Button
-                size="xl"
+              <ShimmerButton
                 onClick={startSpin}
-                className={`text-xl md:text-2xl px-12 py-6 ${hellModeActive ? "bg-gradient-to-r from-red-700 via-red-600 to-orange-600 hover:from-red-600 hover:via-orange-500 hover:to-red-600 shadow-red-700/50" : "bg-gradient-to-r from-red-600 via-red-500 to-green-600 hover:from-red-500 hover:via-amber-500 hover:to-green-500 shadow-red-500/30"} text-white font-bold shadow-lg hover:shadow-red-500/50 hover:scale-105 active:scale-100 transition-all duration-300 animate-pulse`}
+                shimmerColor={hellModeActive ? "#ff4444" : "#ffdd00"}
+                shimmerSize="0.08em"
+                shimmerDuration="2s"
+                borderRadius="16px"
+                background={hellModeActive
+                  ? "linear-gradient(135deg, #7f1d1d 0%, #991b1b 50%, #c2410c 100%)"
+                  : "linear-gradient(135deg, #dc2626 0%, #ea580c 50%, #16a34a 100%)"
+                }
+                className="text-xl md:text-2xl px-10 py-5 font-bold hover:scale-105 active:scale-100 transition-transform"
               >
                 <span className="flex items-center gap-3">
                   <KrutkaIcon size={28} /> {hellModeActive ? "КРУТИТЬ... ЕСЛИ ОСМЕЛИШЬСЯ" : "КРУТИТЬ"} <KrutkaIcon size={28} />
                 </span>
-              </Button>
+              </ShimmerButton>
 
               {!isSpinning && canUseAutoSpin && (
                 <Button
@@ -548,18 +552,13 @@ export function GameScreen() {
           )}
 
           {!hasSpinsLeft && !showVictoryScreen && !autoMode && !isKlenko && (
-            <div className="flex gap-4">
-              <Button
-                size="lg"
-                onClick={() => setShowInventory(true)}
-                className="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 flex items-center gap-2"
-              >
-                <KrutkaIcon size={20} /> Посмотреть крутки
-              </Button>
-              <Button variant="outline" size="lg" onClick={resetPlayer} className="border-white/30 text-white hover:bg-white/10">
-                🔄 Начать заново
-              </Button>
-            </div>
+            <Button
+              size="lg"
+              onClick={() => setShowInventory(true)}
+              className="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 flex items-center gap-2"
+            >
+              <KrutkaIcon size={20} /> Посмотреть крутки
+            </Button>
           )}
         </div>
 
@@ -567,9 +566,10 @@ export function GameScreen() {
         <div className="mt-8 w-full max-w-md">
           <div className={`flex justify-between text-sm ${hellModeActive ? "text-red-300/70" : "text-amber-200/70"} mb-2`}>
             <span>Всего круток сделано</span>
-            <span className={`${hellModeActive ? "text-red-400" : "text-amber-400"} font-bold`}>
-              {currentPlayer.currentSpinIndex}
-            </span>
+            <NumberTicker
+              value={currentPlayer.currentSpinIndex}
+              className={`${hellModeActive ? "text-red-400" : "text-amber-400"} font-bold text-sm`}
+            />
           </div>
           {/* Stats by rarity */}
           <div className="flex flex-wrap gap-2 justify-center mt-4">

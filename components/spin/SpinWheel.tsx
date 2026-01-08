@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { gsap } from "gsap";
+import { FastForward } from "lucide-react";
 import { SpinItemCard } from "./SpinItem";
 import { Button } from "@/components/ui/button";
 import { useTickSound } from "@/hooks/useTickSound";
@@ -236,17 +237,18 @@ export function SpinWheel({ spin, isSpinning, onSpinComplete, fastMode = false, 
       {/* Skip button */}
       {isSpinning && !winnerRevealed && !fastMode && (
         <motion.div
-          className="absolute -bottom-12 left-1/2 -translate-x-1/2"
+          className="absolute -bottom-16 left-1/2 -translate-x-1/2"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
         >
           <Button
-            size="sm"
             variant="outline"
             onClick={skipToEnd}
-            className="text-xs border-white/30 text-white hover:bg-white/20 hover:scale-105 active:scale-95 transition-all"
+            className="px-6 py-2.5 text-sm font-medium border-white/40 text-white/90 bg-white/5 backdrop-blur-sm hover:bg-white/15 hover:border-white/60 hover:text-white hover:scale-105 active:scale-95 transition-all duration-200 rounded-lg shadow-lg"
           >
-            ⏭️ Пропустить
+            <FastForward className="w-4 h-4 mr-2" />
+            Пропустить
           </Button>
         </motion.div>
       )}

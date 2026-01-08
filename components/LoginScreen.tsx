@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Snowfall } from "@/components/effects/Snowfall";
 import { useGameStore } from "@/stores/gameStore";
-import { VALID_NICKNAMES } from "@/data/players";
+import { isValidNickname } from "@/data/players";
 
 const KrutkaIcon = ({ size = 24 }: { size?: number }) => (
   <Image src="/krutka.png" alt="Крутка" width={size} height={size} className="inline-block" />
@@ -19,6 +19,8 @@ export function LoginScreen() {
   const [nickname, setNickname] = useState("");
   const [error, setError] = useState("");
   const [isShaking, setIsShaking] = useState(false);
+  const [klenkoAttempts, setKlenkoAttempts] = useState(0);
+  const [showHint, setShowHint] = useState(false);
   const login = useGameStore((state) => state.login);
 
   useEffect(() => {
@@ -35,12 +37,6 @@ export function LoginScreen() {
       { scale: 1, rotation: 0, duration: 0.8, delay: 0.3, ease: "back.out(1.7)" }
     );
 
-    gsap.fromTo(
-      ".login-hint",
-      { y: 50, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.6, delay: 0.8 }
-    );
-
     // Animate decorations
     gsap.fromTo(
       ".decoration",
@@ -52,6 +48,7 @@ export function LoginScreen() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setShowHint(false);
 
     const trimmedNick = nickname.trim().toUpperCase();
 
@@ -61,10 +58,27 @@ export function LoginScreen() {
       return;
     }
 
-    if (!VALID_NICKNAMES.includes(trimmedNick)) {
-      setError("Неверный никнейм! Доступны: Klenkozarashi или HOHOYKS");
+    if (!isValidNickname(trimmedNick)) {
+      setError("Неверный никнейм!");
       shakeInput();
       return;
+    }
+
+    // Пасхалка для KLENKOZARASHI
+    if (trimmedNick === "KLENKOZARASHI") {
+      if (klenkoAttempts === 0) {
+        setKlenkoAttempts(1);
+        setError("ОШИБКА! Пожалуйста, проверьте правильно ли вы написали ник");
+        shakeInput();
+        return;
+      }
+      if (klenkoAttempts === 1) {
+        setKlenkoAttempts(2);
+        setError("Хмм... Попробуйте заменить букву O на 0, вдруг сработает? 🤔");
+        setShowHint(true);
+        shakeInput();
+        return;
+      }
     }
 
     const success = login(trimmedNick);
@@ -266,7 +280,7 @@ export function LoginScreen() {
                 className={`login-input h-14 text-xl text-center bg-white/10 border-amber-500/50 text-white placeholder:text-gray-400 focus:border-amber-400 ${
                   isShaking ? "border-red-500" : ""
                 }`}
-                placeholder="Klenkozarashi или HOHOYKS"
+                placeholder="Введите никнейм"
                 value={nickname}
                 onChange={(e) => {
                   setNickname(e.target.value.toUpperCase());
@@ -285,6 +299,24 @@ export function LoginScreen() {
                   >
                     {error}
                   </motion.p>
+                )}
+              </AnimatePresence>
+              <AnimatePresence>
+                {showHint && (
+                  <motion.button
+                    type="button"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="w-full py-2 px-4 bg-amber-500/20 hover:bg-amber-500/40 border border-amber-500/50 rounded-lg text-amber-300 text-sm transition-colors"
+                    onClick={() => {
+                      setNickname(nickname.replace(/O/gi, "0"));
+                      setError("");
+                      setShowHint(false);
+                    }}
+                  >
+                    ✨ Заменить O → 0
+                  </motion.button>
                 )}
               </AnimatePresence>
             </div>
@@ -306,39 +338,6 @@ export function LoginScreen() {
         </CardContent>
       </Card>
 
-      {/* Hint */}
-      <motion.div
-        className="login-hint mt-8 text-amber-200/70 text-center z-10"
-        animate={{
-          opacity: [0.5, 1, 0.5],
-        }}
-        transition={{
-          duration: 2,
-          repeat: Number.POSITIVE_INFINITY,
-        }}
-      >
-        <p>Выберите игрока:</p>
-        <div className="flex gap-4 mt-2">
-          <motion.button
-            className="flex items-center gap-2 px-4 py-2 bg-red-500/20 rounded-full cursor-pointer hover:bg-red-500/40 transition-colors border border-red-500/30"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setNickname("KLENKOZARASHI")}
-          >
-            <Image src="/klenko.jpg" alt="Klenkozarashi" width={24} height={24} className="rounded-full" />
-            Klenkozarashi
-          </motion.button>
-          <motion.button
-            className="flex items-center gap-2 px-4 py-2 bg-green-500/20 rounded-full cursor-pointer hover:bg-green-500/40 transition-colors border border-green-500/30"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setNickname("HOHOYKS")}
-          >
-            <Image src="/hohoyks.jpg" alt="HOHOYKS" width={24} height={24} className="rounded-full" />
-            HOHOYKS
-          </motion.button>
-        </div>
-      </motion.div>
 
       {/* Bottom decorations */}
       <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">

@@ -70,15 +70,27 @@ export const PLAYERS: Record<string, PlayerInfo> = {
 // Valid nicknames
 export const VALID_NICKNAMES = Object.keys(PLAYERS);
 
+// Алиасы никнеймов (пасхалка: O -> 0)
+const NICKNAME_ALIASES: Record<string, string> = {
+  "KLENK0ZARASHI": "KLENKOZARASHI",
+};
+
+// Нормализует никнейм (обрабатывает алиасы)
+const normalizeNickname = (nickname: string): string => {
+  const upper = nickname.toUpperCase();
+  return NICKNAME_ALIASES[upper] || upper;
+};
+
 // Check if nickname is valid
 export const isValidNickname = (nickname: string): boolean => {
-  return VALID_NICKNAMES.includes(nickname.toUpperCase());
+  const normalized = normalizeNickname(nickname);
+  return VALID_NICKNAMES.includes(normalized);
 };
 
 // Get player info by nickname
 export const getPlayerInfo = (nickname: string): PlayerInfo | undefined => {
-  const upperNickname = nickname.toUpperCase();
-  return PLAYERS[upperNickname];
+  const normalized = normalizeNickname(nickname);
+  return PLAYERS[normalized];
 };
 
 // ========================================
