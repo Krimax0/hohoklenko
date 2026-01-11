@@ -89,7 +89,7 @@ export function SpinItemCard({
         </span>
       ) : item.imageUrl ? (
         <div className={cn(
-          "relative z-10 drop-shadow-lg transition-opacity",
+          "relative z-10 drop-shadow-lg transition-opacity rounded-lg overflow-hidden",
           showDetails && "group-hover:opacity-0 pointer-events-none",
           size === "sm" && "w-14 h-14",
           size === "md" && "w-20 h-20",
@@ -99,7 +99,7 @@ export function SpinItemCard({
             src={item.imageUrl}
             alt={item.name}
             fill
-            className="object-contain"
+            className="object-contain rounded-lg"
             sizes="(max-width: 768px) 80px, 112px"
           />
         </div>

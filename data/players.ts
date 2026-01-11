@@ -2,6 +2,7 @@ import type { ScriptedSpin, SpinItem, Rarity } from "@/types/spin";
 import {
   getPlayerItems,
   getItemsByRarity,
+  getUnlockedItemIdsWithEquivalents,
 } from "./items";
 
 // ========================================
@@ -99,9 +100,14 @@ export const getPlayerInfo = (nickname: string): PlayerInfo | undefined => {
 
 /**
  * Проверяет, собрана ли полная коллекция (все предметы кроме божественных) для конкретного игрока
+ * Для Klenkozarashi учитывает эквивалентность обычных и адских предметов
  */
 export const isCollectionComplete = (collectedItemIds: string[], nickname: string): boolean => {
-  const collectedSet = new Set(collectedItemIds);
+  // Для Klenkozarashi используем эквиваленты (обычный предмет = адский предмет)
+  const isKlenko = nickname.toUpperCase() === "KLENKOZARASHI";
+  const collectedSet = isKlenko
+    ? getUnlockedItemIdsWithEquivalents(collectedItemIds)
+    : new Set(collectedItemIds);
 
   // Получаем все предметы игрока кроме божественных
   const playerItems = getPlayerItems(nickname);

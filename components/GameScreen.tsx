@@ -469,7 +469,7 @@ export function GameScreen() {
               }
             </span>
           </div>
-          <div className={`h-3 rounded-full ${hellModeActive ? "bg-red-950/50" : "bg-white/10"} relative overflow-hidden`}>
+          <div className={`h-3 rounded-full ${hellModeActive ? "bg-red-950/50" : "bg-white/10"} relative ${hellModeActive ? "" : "overflow-hidden"}`}>
             <motion.div
               className={`h-full rounded-full absolute left-0 top-0 ${
                 hellModeActive

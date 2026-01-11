@@ -138,12 +138,12 @@ export function ItemDetailModal({ item, isOpen, onClose, hellMode = false }: Ite
               {/* Item content */}
               <div className="absolute inset-0 flex items-center justify-center">
                 {item.imageUrl ? (
-                  <div className="relative w-48 h-48 sm:w-60 sm:h-60">
+                  <div className="relative w-48 h-48 sm:w-60 sm:h-60 rounded-xl overflow-hidden">
                     <Image
                       src={item.imageUrl}
                       alt={item.name}
                       fill
-                      className="object-contain drop-shadow-2xl"
+                      className="object-contain drop-shadow-2xl rounded-xl"
                       sizes="(max-width: 640px) 192px, 240px"
                     />
                   </div>

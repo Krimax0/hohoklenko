@@ -4,10 +4,11 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import type { SpinResult, Rarity, SpinItem } from "@/types/spin";
 import { RARITY_CONFIG } from "@/types/spin";
-import { getPlayerItems } from "@/data/items";
+import { getPlayerItems, getUnlockedItemIdsWithEquivalents } from "@/data/items";
 import { getFormattedChances, isCollectionComplete } from "@/data/players";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ItemDetailModal } from "./ItemDetailModal";
 
 interface CollectionProps {
   inventory: SpinResult[];
@@ -27,35 +28,37 @@ const RARITY_ORDER: Rarity[] = [
 ];
 
 // Компонент для отображения открытого предмета
-function UnlockedItemCard({ item, chance }: { item: SpinItem; chance: number }) {
+function UnlockedItemCard({ item, chance, onClick }: { item: SpinItem; chance: number; onClick: () => void }) {
   const config = RARITY_CONFIG[item.rarity];
 
   return (
     <motion.div
-      className="relative rounded-xl p-4 flex flex-col items-center text-center hover:z-50 bg-white/5 backdrop-blur-sm"
+      className="relative rounded-xl p-3 flex flex-col items-center text-center hover:z-50 bg-white/5 backdrop-blur-sm cursor-pointer"
       style={{
         border: `1px solid ${config.color}30`,
       }}
+      onClick={onClick}
       whileHover={{
         scale: 1.02,
         borderColor: config.color,
         boxShadow: `0 0 15px ${config.glowColor}`
       }}
+      whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.2 }}
     >
       {/* Картинка/Эмодзи */}
       {item.imageUrl ? (
-        <div className="relative w-20 h-20 mb-3">
+        <div className="relative w-20 h-20 mb-2 rounded-lg overflow-hidden">
           <Image
             src={item.imageUrl}
             alt={item.name}
             fill
-            className="object-contain drop-shadow-lg"
+            className="object-contain drop-shadow-lg rounded-lg"
             sizes="80px"
           />
         </div>
       ) : (
-        <div className="text-5xl mb-3">
+        <div className="text-5xl mb-2">
           {item.image}
         </div>
       )}
@@ -67,7 +70,7 @@ function UnlockedItemCard({ item, chance }: { item: SpinItem; chance: number }) 
 
       {/* Редкость */}
       <div
-        className="text-xs font-medium mb-2 px-2 py-0.5 rounded-full"
+        className="text-xs font-medium mb-1.5 px-2 py-0.5 rounded-full"
         style={{
           color: config.color,
           background: `${config.color}15`
@@ -77,7 +80,7 @@ function UnlockedItemCard({ item, chance }: { item: SpinItem; chance: number }) 
       </div>
 
       {/* Описание */}
-      <div className="text-xs text-white/50 leading-relaxed">
+      <div className="text-xs text-white/50 leading-snug">
         {item.description}
       </div>
     </motion.div>
@@ -90,7 +93,7 @@ function LockedItemCard({ item, chance }: { item: SpinItem; chance: number }) {
 
   return (
     <motion.div
-      className="relative rounded-xl p-4 flex flex-col items-center text-center hover:z-50 bg-white/[0.02]"
+      className="relative rounded-xl p-3 flex flex-col items-center text-center hover:z-50 bg-white/[0.02]"
       style={{
         border: `1px solid ${config.color}20`,
       }}
@@ -102,7 +105,7 @@ function LockedItemCard({ item, chance }: { item: SpinItem; chance: number }) {
     >
       {/* Иконка вопроса */}
       <div
-        className="text-5xl mb-3 opacity-40"
+        className="text-5xl mb-2 opacity-40"
         style={{ color: config.color }}
       >
         ?
@@ -110,7 +113,7 @@ function LockedItemCard({ item, chance }: { item: SpinItem; chance: number }) {
 
       {/* Редкость */}
       <div
-        className="text-xs font-medium mb-2 px-2 py-0.5 rounded-full opacity-60"
+        className="text-xs font-medium mb-1.5 px-2 py-0.5 rounded-full opacity-60"
         style={{
           color: config.color,
           background: `${config.color}10`
@@ -129,6 +132,8 @@ function LockedItemCard({ item, chance }: { item: SpinItem; chance: number }) {
 
 export function Collection({ inventory, playerNickname, hellMode = false, lowRaritiesRemoved = false }: CollectionProps) {
   const [selectedRarity, setSelectedRarity] = useState<Rarity | "all">("all");
+  const [selectedItem, setSelectedItem] = useState<SpinItem | null>(null);
+  const [showHellVersion, setShowHellVersion] = useState(false);
 
   // Получаем шансы для игрока (с учётом модификатора после 40 круток)
   const chances = getFormattedChances(playerNickname, lowRaritiesRemoved);
@@ -137,11 +142,17 @@ export function Collection({ inventory, playerNickname, hellMode = false, lowRar
     return acc;
   }, {} as Record<Rarity, number>);
 
-  // Получаем предметы текущего игрока (адские если hellMode активен)
-  const playerItems = getPlayerItems(playerNickname, hellMode);
+  // Проверяем, есть ли у игрока адские версии (только Klenkozarashi)
+  const hasHellVersions = playerNickname.toUpperCase() === "KLENKOZARASHI";
 
-  // Создаем Set из ID выпавших предметов
-  const unlockedItemIds = new Set(inventory.map((result) => result.item.id));
+  // Получаем предметы текущего игрока (адские если showHellVersion активен)
+  const playerItems = getPlayerItems(playerNickname, showHellVersion);
+
+  // Создаем Set из ID выпавших предметов (с учетом эквивалентов обычных/адских)
+  const inventoryItemIds = inventory.map((result) => result.item.id);
+  const unlockedItemIds = hasHellVersions
+    ? getUnlockedItemIdsWithEquivalents(inventoryItemIds)
+    : new Set(inventoryItemIds);
 
   // Фильтруем предметы по выбранной редкости
   const filteredItems =
@@ -172,12 +183,12 @@ export function Collection({ inventory, playerNickname, hellMode = false, lowRar
   });
 
   const totalItems = playerItems.length;
-  const totalUnlocked = unlockedItemIds.size;
+  // Считаем количество открытых предметов из текущего набора
+  const totalUnlocked = playerItems.filter(item => unlockedItemIds.has(item.id)).length;
   const completionPercent = Math.floor((totalUnlocked / totalItems) * 100);
 
-  // Проверяем доступность божественной редкости
-  const collectedItemIds = inventory.map((result) => result.item.id);
-  const collectionIsComplete = isCollectionComplete(collectedItemIds, playerNickname);
+  // Проверяем доступность божественной редкости (на основе оригинального инвентаря)
+  const collectionIsComplete = isCollectionComplete(inventoryItemIds, playerNickname);
 
   // Считаем прогресс без учета божественных предметов
   const nonDivineItems = playerItems.filter(item => item.rarity !== "divine");
@@ -211,7 +222,7 @@ export function Collection({ inventory, playerNickname, hellMode = false, lowRar
             </span>
           </div>
         )}
-        {collectionIsComplete && !unlockedItemIds.has(playerNickname.toLowerCase() + "_minecraft_key") && (
+        {collectionIsComplete && !unlockedItemIds.has("klenko_minecraft_key") && !unlockedItemIds.has("hohoyks_minecraft_key") && (
           <div className="mt-2 text-xs text-yellow-400 flex items-center gap-2 font-bold animate-pulse">
             <span>✨</span>
             <span>
@@ -220,6 +231,36 @@ export function Collection({ inventory, playerNickname, hellMode = false, lowRar
           </div>
         )}
       </div>
+
+      {/* Переключатель версий (только для Klenkozarashi) */}
+      {hasHellVersions && (
+        <div className="flex gap-2 mb-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            className={`flex-1 px-4 py-2 rounded-full text-sm font-bold hover:scale-105 active:scale-95 transition-all ${
+              !showHellVersion
+                ? "bg-gradient-to-r from-green-600 to-blue-600 text-white"
+                : "bg-white/10 text-white hover:bg-white/20"
+            }`}
+            onClick={() => setShowHellVersion(false)}
+          >
+            ❄️ Оригинальные
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={`flex-1 px-4 py-2 rounded-full text-sm font-bold hover:scale-105 active:scale-95 transition-all ${
+              showHellVersion
+                ? "bg-gradient-to-r from-red-600 to-orange-600 text-white"
+                : "bg-white/10 text-white hover:bg-white/20"
+            }`}
+            onClick={() => setShowHellVersion(true)}
+          >
+            🔥 Адские
+          </Button>
+        </div>
+      )}
 
       {/* Фильтры по редкости */}
       <div className="flex flex-wrap gap-2 mb-4">
@@ -280,6 +321,7 @@ export function Collection({ inventory, playerNickname, hellMode = false, lowRar
                   key={item.id}
                   item={item}
                   chance={chanceMap[item.rarity]}
+                  onClick={() => setSelectedItem(item)}
                 />
               ))}
 
@@ -300,6 +342,14 @@ export function Collection({ inventory, playerNickname, hellMode = false, lowRar
           </div>
         )}
       </div>
+
+      {/* Item Detail Modal */}
+      <ItemDetailModal
+        item={selectedItem}
+        isOpen={selectedItem !== null}
+        onClose={() => setSelectedItem(null)}
+        hellMode={showHellVersion}
+      />
     </div>
   );
 }
