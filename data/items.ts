@@ -79,7 +79,7 @@ export const KLENKO_HELLISH_ITEMS: SpinItem[] = [
   createItem("klenko_hell_coal_gift", "🔥 Проклятый Дар", "Не открывай. Серьёзно.", "common", "👹", "/images/hell_coal_gift.png"),
 
   // Uncommon (3 предмета)
-  createItem("klenko_hell_gift_box", "🔥 Ящик Пандоры", "Открыл? Ну, удачи.", "uncommon", "📦"),
+  createItem("klenko_hell_gift_box", "🔥 Ящик Пандоры", "Открыл? Ну, удачи.", "uncommon", "📦", "/images/hell_gift_box.png"),
   createItem("klenko_hell_wreath", "🔥 Шар Проклятий", "Шарик покрылся рунами. Миса читает их вслух!", "uncommon", "🔮", "/images/hell_wreath.png"),
   createItem("klenko_hell_star_cookie", "🔥 Печенье Отчаяния", "На вкус как твои слёзы", "uncommon", "🍪", "/images/hell_cookie.png"),
 
@@ -108,15 +108,15 @@ export const KLENKO_HELLISH_DIVINE: SpinItem[] = [
 // ========================================
 export const HOHOYKS_ITEMS: SpinItem[] = [
   // Common (3 предмета)
-  createItem("hohoyks_snowflake", "Снежинка", "Аня подула - улетела к тебе!", "common", "❄️"),
-  createItem("hohoyks_candy_cane", "Леденец", "Застрял в волосах у Ани", "common", "🍬"),
-  createItem("hohoyks_stocking", "Рождественский носок", "Аня туда спрятала мандаринку для тебя", "common", "🧦"),
+  createItem("hohoyks_snowflake", "Снежинка", "Аня подула - улетела к тебе!", "common", "❄️", "/images/snowflake.png"),
+  createItem("hohoyks_candy_cane", "Леденец", "Застрял в волосах у Ани", "common", "🍬","/images/candy_cane.png"),
+  createItem("hohoyks_stocking", "Рождественский носок", "Аня туда спрятала мандаринку для тебя", "common", "🧦", "/images/stocking.png"),
 
   // Uncommon (4 предмета)
-  createItem("hohoyks_snowman_hat", "Шляпа Снеговика", "Аня сказала что тебе точно пойдёт!", "uncommon", "🎩"),
-  createItem("hohoyks_jingle_bells", "Бубенцы", "Аня звенит ими когда скучает по тебе", "uncommon", "🎶"),
-  createItem("hohoyks_christmas_lights", "Гирлянда", "Аня запуталась в ней. Опять.", "uncommon", "✨"),
-  createItem("hohoyks_gingerbread", "Пряничный человечек", "Кричит 'НЕ МЕНЯ!' при виде молока", "uncommon", "🍪"),
+  createItem("hohoyks_snowman_hat", "Шляпа Снеговика", "Аня сказала что тебе точно пойдёт!", "uncommon", "🎩", "/images/snowman_hat.png"),
+  createItem("hohoyks_jingle_bells", "Бубенцы", "Аня звенит ими когда скучает по тебе", "uncommon", "🎶", "/images/jingle_bells.png"),
+  createItem("hohoyks_christmas_lights", "Гирлянда", "Аня запуталась в ней. Опять.", "uncommon", "✨", "/images/christmas_lights.png"),
+  createItem("hohoyks_gingerbread", "Пряничный человечек", "Кричит 'НЕ МЕНЯ!' при виде молока", "uncommon", "🍪", "/images/gingerbread.png"),
 
   // Rare (4 предмета)
   createItem("hohoyks_oksik_road", "Оксик на Машинке", "Скорость: максимальная. Направление: ой, мы проехали", "rare", "🦌", "/images/oksik_road.png"),
@@ -125,12 +125,12 @@ export const HOHOYKS_ITEMS: SpinItem[] = [
   createItem("hohoyks_oksik_pixel", "Пиксельный Оксик", "8 бит, 100% милоты", "rare", "💫", "/images/oksik_pixel.png"),
 
   // Epic (2 предмета)
-  createItem("hohoyks_golden_bell", "Золотой Колокол", "Дин-дон, ты богат!", "epic", "🔔"),
-  createItem("hohoyks_frost_wand", "Волшебная Сосулька", "Лизни её! Язык к ней точно не прилипнет... наверное", "epic", "🧊"),
+  createItem("hohoyks_oksik_crown", "Корона Оксика", "Оксик - король новогодних праздников! Корона его величия", "epic", "👑", "/images/oksik_crown.png"),
+  createItem("hohoyks_oksik_dryasyasya", "Оксик и Дрысясися", "Дрысясися больше не грустит - Оксик рядом!", "epic", "✨", "/images/oksik_dryasyasya.png"),
 
   // Legendary (2 предмета)
   createItem("hohoyks_oksik_sledge", "Оксик на Санках", "Тормоза для слабаков!", "legendary", "✨", "/images/oksik_on_sledge.png"),
-  createItem("hohoyks_golden_tree", "Золотая Ёлка", "Соседи ослепли от зависти!", "legendary", "🌟"),
+  createItem("hohoyks_oksik_tree", "Оксик на Ёлке", "Оксик на верхушке ёлки покоряет небо новогодней ночи!", "legendary", "🌟", "/images/oksik_tree.png"),
 
   // Mythic (1 предмет)
   createItem("hohoyks_oksik_new_year", "Новогодний Оксик", "Съел 47 мандаринов. Не останавливается.", "mythic", "💎", "/images/oksik_new_year.png"),
